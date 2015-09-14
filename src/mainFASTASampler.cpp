@@ -60,8 +60,8 @@ void print_stats(std::vector<double> &abundances) {
 
 int main(int argc, const char ** argv) {
 
-    std::cout << "MSAcquisitionSimulator version " << MSAcquisitionSimulator_VERSION_MAJOR << "." << MSAcquisitionSimulator_VERSION_MINOR << std::endl;
-    std::cout << "FASTASampler version " << FASTASampler_VERSION_MAJOR << "." << FASTASampler_VERSION_MINOR << std::endl;
+    std::cout << "MSAcquisitionSimulator version " << MSAcquisitionSimulator_VERSION_MAJOR << "." << MSAcquisitionSimulator_VERSION_MINOR << "." << MSAcquisitionSimulator_VERSION_PATCH << std::endl;
+    std::cout << "FASTASampler version " << FASTASampler_VERSION_MAJOR << "." << FASTASampler_VERSION_MINOR << "." << FASTASampler_VERSION_PATCH << std::endl;
 
 
     double mean;

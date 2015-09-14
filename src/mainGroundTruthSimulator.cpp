@@ -136,10 +136,6 @@ void generate_ground_truth(IonizationEfficiencySimulator &ionization_efficiency_
 						   std::string fasta_in_path, PeptideGenerator &peptide_generator, BioLCCC::ChromoConditions &chromo_conditions,
 						   BioLCCC::ChemicalBasis &chemical_basis, double gradient_duration, GroundTruthText &db) {
 
-	std::cout << "MSAcquisitionSimulator version " << MSAcquisitionSimulator_VERSION_MAJOR << "." << MSAcquisitionSimulator_VERSION_MINOR << std::endl;
-	std::cout << "GroundTruthSimulator version " << GroundTruthSimulator_VERSION_MAJOR << "." << GroundTruthSimulator_VERSION_MINOR << std::endl;
-
-
 	std::vector<Protein> proteins = parse_FASTA(fasta_in_path.c_str());
 	std::map<Peptide,double> peptides;
 	std::map<Protein*, double> protein2max_abundance;
@@ -217,6 +213,10 @@ void generate_ground_truth(IonizationEfficiencySimulator &ionization_efficiency_
 
 
 int main(int argc, const char ** argv) {
+
+	std::cout << "MSAcquisitionSimulator version " << MSAcquisitionSimulator_VERSION_MAJOR << "." << MSAcquisitionSimulator_VERSION_MINOR << "." << MSAcquisitionSimulator_VERSION_PATCH << std::endl;
+	std::cout << "GroundTruthSimulator version " << GroundTruthSimulator_VERSION_MAJOR << "." << GroundTruthSimulator_VERSION_MINOR << "." << GroundTruthSimulator_VERSION_PATCH << std::endl;
+
 
 	std::string param_file_path;
 	std::string sqlite_out_path;

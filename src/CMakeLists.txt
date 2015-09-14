@@ -4,16 +4,19 @@ project(MSAcquisitionSimulator)
 # The version number.
 set(MSAcquisitionSimulator_VERSION_MAJOR 1)
 set(MSAcquisitionSimulator_VERSION_MINOR 0)
+set(MSAcquisitionSimulator_VERSION_PATCH 0)
 
 set(FASTASampler_VERSION_MAJOR 1)
 set(FASTASampler_VERSION_MINOR 0)
+set(FASTASampler_VERSION_PATCH 0)
 
 set(GroundTruthSimulator_VERSION_MAJOR 1)
 set(GroundTruthSimulator_VERSION_MINOR 0)
+set(GroundTruthSimulator_VERSION_PATCH 0)
 
 set(AcquisitionSimulator_VERSION_MAJOR 1)
 set(AcquisitionSimulator_VERSION_MINOR 0)
-
+set(AcquisitionSimulator_VERSION_PATCH 0)
 
 
 

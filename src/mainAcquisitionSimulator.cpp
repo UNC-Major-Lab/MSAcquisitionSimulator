@@ -126,8 +126,8 @@ AcquisitionController* get_controller(std::string name, std::vector<std::string>
 
 int main(int argc, const char ** argv) {
 
-	std::cout << "MSAcquisitionSimulator Version " << MSAcquisitionSimulator_VERSION_MAJOR << "." << MSAcquisitionSimulator_VERSION_MINOR << std::endl;
-	std::cout << "AcquisitionSimulator Version " << AcquisitionSimulator_VERSION_MAJOR << "." << AcquisitionSimulator_VERSION_MINOR << std::endl;
+	std::cout << "MSAcquisitionSimulator Version " << MSAcquisitionSimulator_VERSION_MAJOR << "." << MSAcquisitionSimulator_VERSION_MINOR << "." << MSAcquisitionSimulator_VERSION_PATCH << std::endl;
+	std::cout << "AcquisitionSimulator Version " << AcquisitionSimulator_VERSION_MAJOR << "." << AcquisitionSimulator_VERSION_MINOR << "." << AcquisitionSimulator_VERSION_PATCH << std::endl;
 
 	std::string sqlite_in_path;
 	std::string mzml_out_path;
