@@ -12,9 +12,12 @@
 2. Navigate to the project root directory  
 3. Execute the following commands:
 ```Shell
-$ cd build
+$ cd build/
 $ cmake ../src
 $ make
+$ cd ../bin/
+$ ls
+AcquisitionSimulator  FASTASampler  GroundTruthSimulator
 ```
 if g++ and/or boost are not in your path, use this command:
 ```Shell
