@@ -26,7 +26,9 @@ The three compiled binary files, *FASTASampler*, *GroundTruthSimulator*, and *Ac
 *** 
 ##**Usage**  
 
-MSAcquisitionSimulator comprises of three separate programs. First, *FASTASampler* takes a .fasta file as input and outputs another .fasta file. The output contains a subset of proteins, with each protein header appended with a '#' followed by a value for that protein's abundance. The distribution of abundance and the size of the protein subset is determined by the user.
+MSAcquisitionSimulator comprises of three separate programs.  
+
+*FASTASampler* takes a .fasta file as input and outputs another .fasta file. The output contains a subset of proteins, with each protein header appended with a '#' followed by a value for that protein's abundance. The distribution of abundance and the size of the protein subset is determined by the user.
 
 ```Shell
 $ ./FASTASampler --help
@@ -49,6 +51,22 @@ Options:
                                         FASTA.
   -o [ --fasta_out ] arg (=sample.sim.fasta)
                                         output path for sampled FASTA file.
+```
+
+*GroundTruthSimulator* takes as input the sampled .fasta file from *FASTASampler* and a configuration file. An example configuration file is found in the root directory: *ground_truth.conf*. This program generates the ground truth data necessary for acquisition simulation. It models post-translational modifications (PTMs), digestion, chromatographic separation, electrospray ionization, and isotopic distributions.
+
+```Shell
+$ ./GroundTruthSimulator --help
+
+USAGE: GroundTruthSimulator [options] input.fasta
+
+Options:
+  --help                                Print usage and exit.
+  -c [ --config ] arg (=ground_truth.conf)
+                                        Input path to config file.
+  -o [ --sqlite_out_path ] arg (=sample.sqlite)
+                                        output path for sampled FASTA file.
+
 ```
 
 ##**Simulator Details**
