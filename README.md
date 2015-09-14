@@ -28,7 +28,7 @@ The three compiled binary files, *FASTASampler*, *GroundTruthSimulator*, and *Ac
 
 MSAcquisitionSimulator comprises of three separate programs.  
 
-*FASTASampler* takes a .fasta file as input and outputs another .fasta file. The output contains a subset of proteins, with each protein header appended with a '#' followed by a value for that protein's abundance. The distribution of abundance and the size of the protein subset is determined by the user.
+*FASTASampler* takes a .fasta file as input (it can be gzipped) and outputs another .fasta file. The output contains a subset of proteins, with each protein header appended with a '#' followed by a value for that protein's abundance. The distribution of abundance and the size of the protein subset is determined by the user.
 
 ```Shell
 $ ./FASTASampler --help
@@ -84,6 +84,17 @@ Options:
   -f [ --fido_out_path ] arg (=sample.fido)
                                         output path for fido file.
 ``` 
+**Example**
+```Shell
+./FASTASampler -dlognormal -m10 -s0.9 -p0.5 -o sampled_human.fasta uniprot_homo_sapiens_proteome.fasta.gz
+
+Number of proteins in FASTA: 91618
+Number of proteins sampled: 45809
+
+Abundance distribution statistics
+Min: 1.79238e+06	Max: 5.04653e+13	Dynamic range: 7.44956
+Median: 9.8866e+09	Mean: 8.38047e+10	Stdev: 5.53181e+11
+```
 
 ##**Simulator Details**
 
