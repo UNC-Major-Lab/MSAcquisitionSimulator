@@ -62,7 +62,7 @@ void validate(boost::any& v, const std::vector<std::string>& values, DefaultEnzy
 	boost::program_options::variables_map vm;
 	boost::program_options::store(boost::program_options::command_line_parser(result).options(general).run(), vm);
 	boost::program_options::notify(vm);
-	std::cout << name << " " << residues << " " << cleavage_probability << " " << blocking_residues  << std::endl;
+	std::cout << "Enzyme registered: " << name << " " << residues << " " << blocking_residues  << std::endl;
 	v = DefaultEnzyme(name, residues, blocking_residues, terminus, cleavage_probability);
 }
 
@@ -105,6 +105,8 @@ void validate(boost::any& v, const std::vector<std::string>& values, DefaultPTM*
 	boost::program_options::notify(vm);
 
 	double bind_area = (bind_energy == 0) ? 0 : 1;
+
+	std::cout << "Modification registered: " << name << " " << abbreviation << " " << residues << " " << formula << " " << site_probability << " " << bind_energy << " " << abundance << " " << std::endl;
 
 	v = DefaultPTM(name, abbreviation, residues, formula, site_probability, bind_energy, bind_area, abundance, blocks_cleavage, post_digestion);
 }
@@ -246,7 +248,7 @@ int main(int argc, const char ** argv) {
 	general.add_options()
 			("help", "Print usage and exit.")
 			("config,c", boost::program_options::value<std::string>(&param_file_path)->default_value("ground_truth.conf"), "Input path to config file.")
-			("sqlite_out_path,o", boost::program_options::value<std::string>(&sqlite_out_path)->default_value("sample.sqlite"), "output path for sampled FASTA file.")
+			("ground_truth_out_path,o", boost::program_options::value<std::string>(&sqlite_out_path)->default_value("ground_truth.tab"), "Output path for ground truth file.")
 			;
 
 	boost::program_options::options_description hidden("");

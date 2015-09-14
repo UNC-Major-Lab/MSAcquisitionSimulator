@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(MSAcquisitionSimulator)
 
+
+# Uncomment the line below if your boost installation is in an non-standard location
+#set(BOOST_ROOT /nas02/apps/boost-1.49.0/)
+
 # The version number.
 set(MSAcquisitionSimulator_VERSION_MAJOR 1)
 set(MSAcquisitionSimulator_VERSION_MINOR 0)
@@ -49,9 +53,9 @@ if (ZLIB_FOUND)
     target_link_libraries(AcquisitionSimulator ${ZLIB_LIBRARIES})
 endif()
 
-set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED OFF)
-set(Boost_USE_STATIC_RUNTIME OFF)
+set(Boost_USE_STATIC_RUNTIME ON)
 
 #find_package(Boost)
 SET(BOOST_MIN_VERSION "1.48.0")

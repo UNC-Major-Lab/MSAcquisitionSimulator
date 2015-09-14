@@ -177,7 +177,7 @@ int main(int argc, const char ** argv) {
 
 	boost::program_options::options_description hidden("");
 	hidden.add_options()
-			("sqlite_in_path", boost::program_options::value<std::string>(&sqlite_in_path), "input path for ground truth file made by GroundTruthSimulator.")
+			("ground_truth_in_path", boost::program_options::value<std::string>(&sqlite_in_path), "input path for ground truth file made by GroundTruthSimulator.")
 			;
 
 	boost::program_options::options_description all("Allowed options");
