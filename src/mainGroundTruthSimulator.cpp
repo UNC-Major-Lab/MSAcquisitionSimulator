@@ -17,7 +17,7 @@
 
 #include "DefaultPTM.h"
 #include "DefaultEnzyme.h"
-#include "FastaParser.h"
+#include "FASTAParser.h"
 #include "PeptideGenerator.h"
 #include "IonizationSimulator.h"
 #include "Histogram.h"
