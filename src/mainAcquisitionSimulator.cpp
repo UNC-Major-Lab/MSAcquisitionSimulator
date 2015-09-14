@@ -170,14 +170,14 @@ int main(int argc, const char ** argv) {
 	boost::program_options::options_description general("USAGE: AcquisitionSimulator [options] ground_truth.tab\n\nOptions");
 	general.add_options()
 			("help", "Print usage and exit.")
-			("conf,c", boost::program_options::value<std::string>(&param_file_path)->default_value("ground_truth.conf"), "Input path to config file.")
+			("conf,c", boost::program_options::value<std::string>(&param_file_path)->default_value("acquisition.conf"), "Input path to config file.")
 			("mzml_out_path,o", boost::program_options::value<std::string>(&mzml_out_path)->default_value("sample.mzML"), "output path for mzML file.")
 			("fido_out_path,f", boost::program_options::value<std::string>(&fido_out_path)->default_value("sample.fido"), "output path for fido file.")
 			;
 
 	boost::program_options::options_description hidden("");
 	hidden.add_options()
-			("sqlite_in_path", boost::program_options::value<std::string>(&sqlite_in_path), "input path for ground truth SQLite file made by GroundTruthSimulator.")
+			("sqlite_in_path", boost::program_options::value<std::string>(&sqlite_in_path), "input path for ground truth file made by GroundTruthSimulator.")
 			;
 
 	boost::program_options::options_description all("Allowed options");
@@ -190,6 +190,12 @@ int main(int argc, const char ** argv) {
 	boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(all).positional(p).run(), vm);
 	boost::program_options::notify(vm);
 	//endregion
+
+	//region Command line processing
+	if (vm.count("help")) {
+		std::cout << general << std::endl;
+		return 0;
+	}
 
 	//region config file specification
 	boost::program_options::options_description config("Configuration file options");

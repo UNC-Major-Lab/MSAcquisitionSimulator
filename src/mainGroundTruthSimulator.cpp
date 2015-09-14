@@ -265,6 +265,12 @@ int main(int argc, const char ** argv) {
 	boost::program_options::notify(vm);
 	//endregion
 
+	//region Command line processing
+	if (vm.count("help")) {
+		std::cout << general << std::endl;
+		return 0;
+	}
+
 
 	//region config file specification
 	boost::program_options::options_description config("Configuration file options");

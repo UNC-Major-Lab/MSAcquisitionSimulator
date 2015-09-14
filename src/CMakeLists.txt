@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.0)
 project(MSAcquisitionSimulator)
 
 # The version number.
@@ -13,6 +13,12 @@ set(GroundTruthSimulator_VERSION_MINOR 0)
 
 set(AcquisitionSimulator_VERSION_MAJOR 1)
 set(AcquisitionSimulator_VERSION_MINOR 0)
+
+
+
+
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/../bin")
 
 # Configure a header file to pass some of the CMake settings to the source code
 configure_file(
@@ -45,7 +51,7 @@ set(Boost_USE_MULTITHREADED OFF)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
 #find_package(Boost)
-find_package(Boost COMPONENTS program_options)
+find_package(Boost COMPONENTS REQUIRED program_options)
 
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
@@ -56,6 +62,6 @@ if(Boost_FOUND)
 endif()
 
 # add the install targets
-install (TARGETS FASTASampler GroundTruthSimulator AcquisitionSimulator DESTINATION bin)
+#install (TARGETS FASTASampler GroundTruthSimulator AcquisitionSimulator DESTINATION bin)
 
 
