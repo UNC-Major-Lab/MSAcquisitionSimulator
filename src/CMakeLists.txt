@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 2.8)
 project(MSAcquisitionSimulator)
 
 # The version number.
@@ -54,7 +54,8 @@ set(Boost_USE_MULTITHREADED OFF)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
 #find_package(Boost)
-find_package(Boost COMPONENTS REQUIRED program_options)
+SET(BOOST_MIN_VERSION "1.48.0")
+find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS REQUIRED program_options)
 
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
