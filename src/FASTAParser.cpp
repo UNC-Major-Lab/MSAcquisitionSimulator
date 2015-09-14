@@ -1,14 +1,14 @@
 //
-// Created by Dennis Goldfarb on 6/27/15.
+// Created by Dennis Goldfarb
 //
 
-#include "FastaParser.h"
+#include "FASTAParser.h"
 #include <zlib.h>
 #include "kseq.h"
 
 KSEQ_INIT(gzFile, gzread)
 
-std::vector<Protein> parse_FASTA(const char * path_FASTA) {
+std::vector<Protein> parse_FASTA(const char* path_FASTA) {
 	std::vector<Protein> proteins = std::vector<Protein>();
 	gzFile fp;
 	fp = gzopen(path_FASTA, "r"); // STEP 2: open the file handler
