@@ -25,7 +25,32 @@ $ cmake ../src -DCMAKE_CXX_COMPILER=/path/to/g++ -DBOOST_ROOT=/path/to/boost/roo
 The three compiled binary files, *FASTASampler*, *GroundTruthSimulator*, and *AcquisitionSimulator* should be in [project_root]/bin/  
 *** 
 ##**Usage**  
-***
+
+MSAcquisitionSimulator comprises of three separate programs. First, *FASTASampler* takes a .fasta file as input and outputs another .fasta file. The output contains a subset of proteins, with each protein header appended with a '#' followed by a value for that protein's abundance. The distribution of abundance and the size of the protein subset is determined by the user.
+
+```Shell
+$ ./FASTASampler --help
+USAGE: FASTASampler [options] input.fasta
+
+Options:
+  --help                                Print usage and exit.
+  -d [ --distribution ] arg             Choose abundance distribution. Options:
+                                        normal, lognormal
+  -m [ --mean ] arg (=10)               The mean of the normal distribution, or
+                                        m parameter for log-normal (log10).
+  -s [ --stdev ] arg (=0.90000000000000002)
+                                        The standard deviation of the normal 
+                                        distribution, or s parameter for 
+                                        log-normal (log10). 99.97% of the data 
+                                        will be within +-3 standard deviations
+  -p [ --percentage ] arg (=1)          Percentage of proteins to sample from. 
+                                        Takes precedence over --numprot.
+  -n [ --numprot ] arg                  Number of proteins to sample from 
+                                        FASTA.
+  -o [ --fasta_out ] arg (=sample.sim.fasta)
+                                        output path for sampled FASTA file.
+```
+
 ##**Simulator Details**
-***
+
 ##**Creating a Custom Acquisition Controller**
