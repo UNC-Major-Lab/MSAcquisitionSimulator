@@ -36,7 +36,7 @@ public:
 	};
 
 	void close_file();
-	void add_to_write_buffer(std::unique_ptr<Scan> s);
+	void add_to_scan_buffer(std::unique_ptr<Scan> s);
 	void write_buffer();
 	void output_file_end();
 

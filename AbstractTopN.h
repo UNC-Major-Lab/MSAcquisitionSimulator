@@ -34,6 +34,9 @@ private:
 	virtual std::list<BasicPeak> rank_peaks(std::vector<BasicPeak> &peaks) = 0;
 
 public:
+	AbstractTopN(const std::vector<std::string>& values) {
+		validate(values);
+	}
 
 	AbstractTopN(TopNParameters parameters) : parameters(parameters), static_exclusion_list(parameters.exclusion_list_mz_tolerance),
 	dynamic_exclusion_list(parameters.exclusion_list_mz_tolerance, parameters.exclusion_time) {}
@@ -44,6 +47,8 @@ public:
 
 
 	std::unique_ptr<ScanRequest> get_scan_request(double current_time);
+	void validate(const std::vector<std::string>& values);
+
 
 
 };

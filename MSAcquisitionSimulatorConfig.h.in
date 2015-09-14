@@ -1,0 +1,12 @@
+// the configured options and settings for MSAcquisitionSimulator
+#define MSAcquisitionSimulator_VERSION_MAJOR @MSAcquisitionSimulator_VERSION_MAJOR@
+#define MSAcquisitionSimulator_VERSION_MINOR @MSAcquisitionSimulator_VERSION_MINOR@
+
+#define FASTASampler_VERSION_MAJOR @FASTASampler_VERSION_MAJOR@
+#define FASTASampler_VERSION_MINOR @FASTASampler_VERSION_MINOR@
+
+#define GroundTruthSimulator_VERSION_MAJOR @GroundTruthSimulator_VERSION_MAJOR@
+#define GroundTruthSimulator_VERSION_MINOR @GroundTruthSimulator_VERSION_MINOR@
+
+#define AcquisitionSimulator_VERSION_MAJOR @AcquisitionSimulator_VERSION_MAJOR@
+#define AcquisitionSimulator_VERSION_MINOR @AcquisitionSimulator_VERSION_MINOR@

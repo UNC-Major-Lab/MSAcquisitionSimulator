@@ -17,13 +17,10 @@ std::unique_ptr<Scan> Oracle::get_scan_data(ScanRequest *scan_request, double ti
 }
 
 std::unique_ptr<MS1Scan> Oracle::get_ms1_data(ScanRequest* scan_request, double time) {
-	std::vector<Centroid*> ions = db->get_ions_at_rt(scan_request->min_mz, scan_request->max_mz, time);
+	std::vector<IonDAO*> ions = db->get_ions_at_rt(scan_request->min_mz, scan_request->max_mz, time);
 	double elapsed_time = 0;
 
-	std::vector<Peak> peaks = generate_peak_list(ions, time, elapsed_time, scan_request->max_injection_time, scan_request->target_total_ion_count);
-
-	for (auto itr = ions.begin(); itr != ions.end(); ++itr) delete (*itr);
-	ions.clear();
+	std::vector<Peak> peaks = generate_peak_list(ions, time, elapsed_time, instrument->max_ms1_injection_time, instrument->ms1_target_total_ion_count);
 
 	std::vector<BasicPeak> ms1_signals = generate_profile_MS_signals(peaks, scan_request->min_mz, scan_request->max_mz, instrument->resolution);
 	ms1_signals = centroid_MS_signals(ms1_signals);
@@ -39,14 +36,11 @@ std::unique_ptr<MS1Scan> Oracle::get_ms1_data(ScanRequest* scan_request, double 
 
 
 std::unique_ptr<MS2Scan> Oracle::get_ms2_data(MS2ScanRequest* scan_request, double time) {
-	std::vector<Centroid*> ions = db->get_peptides_at_rt(scan_request->min_mz, scan_request->max_mz, time);
+	std::vector<IonDAO*> ions = db->get_ions_at_rt(scan_request->min_mz, scan_request->max_mz, time);
 	double elapsed_time = 0;
 
-	std::map<std::string, double> peptide2intensity = calculate_peptide_abundance(ions, time, elapsed_time, scan_request->max_injection_time, scan_request->target_total_ion_count);
-	std::vector<Peak> peaks = generate_peak_list(ions, time, elapsed_time, scan_request->max_injection_time, scan_request->target_total_ion_count);
-
-	for (auto itr = ions.begin(); itr != ions.end(); ++itr) delete (*itr);
-	ions.clear();
+	std::map<std::string, double> peptide2intensity = calculate_peptide_abundance(ions, time, elapsed_time, instrument->max_ms2_injection_time, instrument->ms2_target_total_ion_count);
+	std::vector<Peak> peaks = generate_peak_list(ions, time, elapsed_time, instrument->max_ms2_injection_time, instrument->ms2_target_total_ion_count);
 
 	std::vector<BasicPeak> ms2_signals = generate_profile_MS_signals(peaks, scan_request->min_mz, scan_request->max_mz, instrument->resolution);
 	ms2_signals = centroid_MS_signals(ms2_signals);
@@ -54,12 +48,12 @@ std::unique_ptr<MS2Scan> Oracle::get_ms2_data(MS2ScanRequest* scan_request, doub
 	elapsed_time = std::max(elapsed_time, instrument->get_scan_acquisition_time(scan_request));
 	elapsed_time += instrument->get_scan_overhead_time();
 
-	return std::unique_ptr<MS2Scan>(new MS2Scan(ms2_signals, time, elapsed_time, current_scan_id, Scan::ScanType::MS2, scan_request->peak, scan_request->parent_scan_id, peptide2intensity, scan_request->target_total_ion_count));
+	return std::unique_ptr<MS2Scan>(new MS2Scan(ms2_signals, time, elapsed_time, current_scan_id, Scan::ScanType::MS2, scan_request->peak, scan_request->parent_scan_id, peptide2intensity, instrument->ms2_target_total_ion_count));
 }
 
 
 
-std::map<std::string, double> Oracle::calculate_peptide_abundance(std::vector<Centroid *> &ions, double current_time,
+std::map<std::string, double> Oracle::calculate_peptide_abundance(std::vector<IonDAO *> &ions, double current_time,
 																  double &elapsed_time, double max_injection_time,
 																  double target_total_ion_count) {
 	std::map<std::string, double> peptide2intensity;
@@ -67,17 +61,15 @@ std::map<std::string, double> Oracle::calculate_peptide_abundance(std::vector<Ce
 	double TIC = 0;
 	double step_size = 0.001;
 
-	for (Centroid *ion : ions) {
-		MS2Centroid * ms2ion = static_cast<MS2Centroid*>(ion);
-		if (peptide2intensity.find(ms2ion->modified_sequence) == peptide2intensity.end()) {
-			peptide2intensity[ms2ion->modified_sequence] = 0;
+	for (IonDAO *ion : ions) {
+		if (peptide2intensity.find(ion->modified_sequence) == peptide2intensity.end()) {
+			peptide2intensity[ion->modified_sequence] = 0;
 		}
 	}
 
 	for (elapsed_time = 0; elapsed_time < max_injection_time && TIC < target_total_ion_count; elapsed_time+=step_size) {
-		for (int i = 0; i < ions.size(); i++) {
-			MS2Centroid * ion = static_cast<MS2Centroid*>(ions[i]);
-			double abundance = elution_shape_simulator.get_abundance_over_time(ion->rt_center, ion->intensity, current_time+elapsed_time, current_time+elapsed_time+step_size);
+		for (IonDAO *ion : ions) {
+			double abundance = elution_shape_simulator.get_abundance_over_time(ion->rt, ion->abundance, current_time+elapsed_time, current_time+elapsed_time+step_size);
 			peptide2intensity[ion->modified_sequence]+= abundance;
 			TIC += abundance;
 		}
@@ -93,18 +85,18 @@ std::map<std::string, double> Oracle::calculate_peptide_abundance(std::vector<Ce
 	return peptide2intensity;
 }
 
-std::vector<Peak> Oracle::generate_peak_list(std::vector<Centroid*> &ions, double current_time, double &elapsed_time, double max_injection_time, double target_total_ion_count) {
+std::vector<Peak> Oracle::generate_peak_list(std::vector<IonDAO*> &ions, double current_time, double &elapsed_time, double max_injection_time, double target_total_ion_count) {
 	// integrate abundance until target ions reached
 
 	double TIC = 0;
-	double step_size = 0.001;
+	double step_size = 0.005;
 	std::vector<Peak> peaks;
-	for (Centroid *ion : ions) peaks.push_back(Peak(ion->mz, ion->mass, ion->charge, 0, ion->num_neutrons));
+	for (IonDAO *ion : ions) peaks.push_back(Peak(ion->mz, ion->mass, ion->charge, 0, ion->neutrons));
 
 	for (elapsed_time = 0; elapsed_time < max_injection_time && TIC < target_total_ion_count; elapsed_time+=step_size) {
 		for (int i = 0; i < ions.size(); i++) {
-			Centroid *ion = ions[i];
-			double abundance = elution_shape_simulator.get_abundance_over_time(ion->rt_center, ion->intensity, current_time+elapsed_time, current_time+elapsed_time+step_size);
+			IonDAO *ion = ions[i];
+			double abundance = elution_shape_simulator.get_abundance_over_time(ion->rt, ion->abundance, current_time+elapsed_time, current_time+elapsed_time+step_size);
 			peaks[i].intensity += abundance;
 			TIC += abundance;
 		}
@@ -185,10 +177,6 @@ double Oracle::pdf_lorentzian(double fwhm, double x, double x0) {
 	boost::math::cauchy_distribution<double> cauchy(0., fwhm / 2.0);
 	double pdf = (boost::math::pdf(cauchy, (x-.005)-x0) + boost::math::pdf(cauchy, (x+.005)-x0))/2;
 	return pdf*.01;
-	/*double width = 0.01;
-	double diff = (x-x0)/fwhm;
-	double pdf = 1 / (M_PI * fwhm * (1 + diff*diff));
-	return pdf*width;*/
 }
 
 

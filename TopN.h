@@ -28,6 +28,7 @@ private:
 	std::list<BasicPeak> rank_peaks(std::vector<BasicPeak> &peaks);
 
 public:
+	TopN(const std::vector<std::string>& values) : AbstractTopN(values) {};
 
 	TopN(TopNParameters parameters) : AbstractTopN(parameters) {}
 

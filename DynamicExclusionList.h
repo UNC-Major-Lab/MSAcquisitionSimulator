@@ -18,7 +18,7 @@ class DynamicExclusionList : public ExclusionList<DynamicExclusionListEntry> {
 private:
 
 public:
-
+	DynamicExclusionList() {}
 	DynamicExclusionList(double mz_tolerance, double exclusion_time) : ExclusionList(mz_tolerance), exclusion_time(exclusion_time) {}
 
 	double exclusion_time;

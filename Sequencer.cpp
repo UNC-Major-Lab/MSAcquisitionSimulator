@@ -5,6 +5,7 @@
 #include "Sequencer.h"
 
 void Sequencer::initialize(std::string fasta_in_path) {
+	std::cout << "Parsing FASTA file and digesting proteins..." << std::endl;
 	proteins = parse_FASTA(fasta_in_path.c_str());
 	std::unordered_set<Peptide, KeyHasher> digested_peptides;
 
@@ -17,6 +18,7 @@ void Sequencer::initialize(std::string fasta_in_path) {
 	}
 
 	std::sort(peptides.begin(), peptides.end(), Peptide::less_mz);
+	std::cout << "Digestion complete." << std::endl;
 }
 
 
@@ -63,7 +65,6 @@ void Sequencer::sequence_ms2_scan(MS2Scan *scan) {
 			selected_seq = *itr;
 			probability = get_null_probability();
 		}
-
 	}
 	scan->peptide = selected_seq;
 	scan->probability = probability;
@@ -72,8 +73,8 @@ void Sequencer::sequence_ms2_scan(MS2Scan *scan) {
 		scan->proteins = pep2prot[selected_seq];
 	}
 
-	if (correct)
-		std::cout << scan->precursor_peak.mz << "\t" << selected_seq << "\t" << probability <<  "\t" << candidate_peptides.size() << "\t" << correct << std::endl;
+	//if (correct)
+	//	std::cout << scan->precursor_peak.mz << "\t" << selected_seq << "\t" << probability <<  "\t" << candidate_peptides.size() << "\t" << correct << std::endl;
 
 }
 

@@ -9,6 +9,9 @@
 #include <string>
 #include <unordered_set>
 #include <map>
+#include <iostream>
+#include <vector>
+
 #include "PTM.h"
 #include "Enzyme.h"
 #include "DBEnzyme.h"

@@ -21,10 +21,10 @@ void Instrument::apply_dynamic_range(std::vector<BasicPeak> &peaks) {
 }
 
 double Instrument::get_scan_acquisition_time(ScanRequest* scanRequest) {
-	if (scanRequest->do_fragmentation) return 0.064;
-	else return 0.256;
+	if (scanRequest->do_fragmentation) return ms2_scan_time;
+	else return ms1_scan_time;
 }
 
 double Instrument::get_scan_overhead_time() {
-	return .005;
+	return scan_overhead_time;
 }

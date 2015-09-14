@@ -18,6 +18,7 @@ private:
 	std::list<BasicPeak> rank_peaks(std::vector<BasicPeak> &peaks);
 
 public:
+	RandomN(const std::vector<std::string>& values) : AbstractTopN(values) {};
 
 	RandomN(TopNParameters parameters) : AbstractTopN(parameters) {}
 

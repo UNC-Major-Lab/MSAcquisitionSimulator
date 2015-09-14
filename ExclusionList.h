@@ -12,6 +12,8 @@ class ExclusionList {
 private:
 
 public:
+	ExclusionList() {}
+
 	ExclusionList(double mz_tolerance) : mz_tolerance(mz_tolerance) {}
 
 	void add_entry(T entry);

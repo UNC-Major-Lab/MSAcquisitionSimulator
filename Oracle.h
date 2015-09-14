@@ -11,16 +11,15 @@
 #include "ScanRequest.h"
 #include "Scan.h"
 #include "Instrument.h"
-#include "GroundTruthDatabase.h"
 #include "MS1Scan.h"
 #include "MS2Scan.h"
-#include "Centroid.h"
 #include "MS2ScanRequest.h"
+#include "GroundTruthText.h"
 
 class Oracle {
 private:
 	Instrument* instrument;
-	GroundTruthDatabase* db;
+	GroundTruthText* db;
 	ElutionShapeSimulator elution_shape_simulator;
 	int current_scan_id;
 
@@ -28,8 +27,8 @@ private:
 	std::unique_ptr<MS2Scan> get_ms2_data(MS2ScanRequest* scan_request, double time);
 
 
-	std::map<std::string, double> calculate_peptide_abundance(std::vector<Centroid*> &ions, double current_time, double &elapsed_time, double max_injection_time, double target_total_ion_count);
-	std::vector<Peak> generate_peak_list(std::vector<Centroid*> &ions, double current_time, double &elapsed_time, double max_injection_time, double target_total_ion_count);
+	std::map<std::string, double> calculate_peptide_abundance(std::vector<IonDAO*> &ions, double current_time, double &elapsed_time, double max_injection_time, double target_total_ion_count);
+	std::vector<Peak> generate_peak_list(std::vector<IonDAO*> &ions, double current_time, double &elapsed_time, double max_injection_time, double target_total_ion_count);
 
 	std::vector<BasicPeak> generate_profile_MS_signals(std::vector<Peak> &peaks, double min_mz, double max_mz, double resolution);
 	std::vector<BasicPeak> centroid_MS_signals(std::vector<BasicPeak> &profile_signals);
@@ -37,7 +36,7 @@ private:
 
 
 public:
-	Oracle(GroundTruthDatabase* db, Instrument* instrument, ElutionShapeSimulator elution_shape_simulator) :
+	Oracle(GroundTruthText* db, Instrument* instrument, ElutionShapeSimulator elution_shape_simulator) :
 			db(db), instrument(instrument), elution_shape_simulator(elution_shape_simulator) {
 		current_scan_id = 0;
 	};

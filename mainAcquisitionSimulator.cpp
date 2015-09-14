@@ -5,21 +5,29 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/bind.hpp>
-#include "sqlite3.h"
+
 #include "Globals.h"
 #include "AcquisitionController.h"
 #include "Oracle.h"
-#include "GroundTruthDatabase.h"
 #include "Sequencer.h"
 #include "TopN.h"
 #include "MzMLWriter.h"
 #include "DBEnzyme.h"
 #include "DBPTM.h"
 #include "FidoWriter.h"
+#include "GroundTruthText.h"
+#include "StochasticN.h"
+#include "RandomN.h"
 
+#include "MSAcquisitionSimulatorConfig.h"
+
+/*
+ * Begin: Command line and config file parsing for user defined classes
+ */
 void validate(boost::any& v, const std::vector<std::string>& values, TERMINUS* target_type, int) {
 	if (values[0][0] == 'N') v = TERMINUS::N_TERM;
 	else if (values[0][0] == 'C') v = TERMINUS::C_TERM;
@@ -53,7 +61,7 @@ void validate(boost::any& v, const std::vector<std::string>& values, DBEnzyme* t
 	boost::program_options::store(boost::program_options::command_line_parser(result).options(general).run(), vm);
 	boost::program_options::notify(vm);
 
-	std::cout << name << " " << residues << " " << blocking_residues  << std::endl;
+	std::cout << "Enzyme registered: " << name << " " << residues << " " << blocking_residues  << std::endl;
 
 	v = DBEnzyme(name, residues, blocking_residues, terminus);
 }
@@ -88,38 +96,56 @@ void validate(boost::any& v, const std::vector<std::string>& values, DBPTM* targ
 	boost::program_options::store(boost::program_options::command_line_parser(result).options(general).run(), vm);
 	boost::program_options::notify(vm);
 
-	std::cout << name << " " << residues << " " << formula << std::endl;
+	std::cout << "PTM registered: " << name << " " << residues << " " << formula << std::endl;
 
 	v = DBPTM(name, abbreviation, residues, formula, is_static);
 }
+/*
+ * End: Command line and config file parsing for user defined classes
+ */
+
+
+/*
+ * Simple map to convert algorithm name to the actual AcquisitionController.
+ * You must register your new controller here.
+ */
+AcquisitionController* get_controller(std::string name, std::vector<std::string> acquisition_param_values) {
+	if (name == "TopN") {
+		return new TopN(acquisition_param_values);
+	} else if (name == "RandomN") {
+		return new RandomN(acquisition_param_values);
+	} else if (name == "StochasticN") {
+		return new StochasticN(acquisition_param_values);
+	}
+
+	std::cout << "Acquisition algorithm name not recognized: " << name << ". Defaulting to TopN.";
+	return new TopN(acquisition_param_values); // DEFAULT
+}
+
+
 
 int main(int argc, const char ** argv) {
+
+	std::cout << "MSAcquisitionSimulator Version " << MSAcquisitionSimulator_VERSION_MAJOR << "." << MSAcquisitionSimulator_VERSION_MINOR << std::endl;
+	std::cout << "AcquisitionSimulator Version " << AcquisitionSimulator_VERSION_MAJOR << "." << AcquisitionSimulator_VERSION_MINOR << std::endl;
 
 	std::string sqlite_in_path;
 	std::string mzml_out_path;
 	std::string param_file_path;
 	std::string fido_out_path;
-
-	std::string acquisition_algorithm_name;
 	std::string fasta_in_path;
-	int num_ms2;
-	int ms1_scan_time;
-	int ms2_scan_time;
+	std::string acquisition_algorithm_name;
+
+	std::vector<std::string> acquisition_param_values;
+
+	double ms1_scan_time;
+	double ms2_scan_time;
+	double scan_overhead_time;
 	int acquisition_length;
-	double ms1_min_mz;
-	double ms1_max_mz;
-	double ms2_isolation_width;
-	double dynamic_exclusion_tolerance;
-	int dynamic_exclusion_time;
-	bool dynamic_exclusion_enabled;
 
 	double elution_tau;
 	double elution_sigma;
 
-	double max_ms1_injection_time;
-	double max_ms2_injection_time;
-	double ms1_target_total_ion_count;
-	double ms2_target_total_ion_count;
 	double resolution;
 	double dynamic_range;
 
@@ -131,15 +157,20 @@ int main(int argc, const char ** argv) {
 	int db_search_min_enzymatic_termini;
 	double null_lambda;
 
+	double max_ms1_injection_time;
+	double max_ms2_injection_time;
+	double ms1_target_total_ion_count;
+	double ms2_target_total_ion_count;
+
 	std::vector<DBPTM> PTMs;
 	std::vector<DBEnzyme> enzymes;
 
 
 	//region Command line specification
-	boost::program_options::options_description general("USAGE: AcquisitionSimulator [options] ground_truth.sqlite\n\nOptions");
+	boost::program_options::options_description general("USAGE: AcquisitionSimulator [options] ground_truth.tab\n\nOptions");
 	general.add_options()
 			("help", "Print usage and exit.")
-			("param,p", boost::program_options::value<std::string>(&param_file_path)->default_value("ground_truth.params"), "Input path to parameter file.")
+			("conf,c", boost::program_options::value<std::string>(&param_file_path)->default_value("ground_truth.conf"), "Input path to config file.")
 			("mzml_out_path,o", boost::program_options::value<std::string>(&mzml_out_path)->default_value("sample.mzML"), "output path for mzML file.")
 			("fido_out_path,f", boost::program_options::value<std::string>(&fido_out_path)->default_value("sample.fido"), "output path for fido file.")
 			;
@@ -164,23 +195,14 @@ int main(int argc, const char ** argv) {
 	boost::program_options::options_description config("Configuration file options");
 	config.add_options()
 			("acquisition_algorithm", boost::program_options::value<std::string>(&acquisition_algorithm_name)->default_value("TopN"), "acquisition algorithm")
-			("num_ms2", boost::program_options::value<int>(&num_ms2)->default_value(10), "num_ms2")
-			("ms1_scan_time", boost::program_options::value<int>(&ms1_scan_time)->default_value(128), "ms1_scan_time")
-			("ms2_scan_time", boost::program_options::value<int>(&ms2_scan_time)->default_value(64), "ms2_scan_time")
-			("ms1_min_mz", boost::program_options::value<double>(&ms1_min_mz)->default_value(200), "ms1_min_mz")
-			("ms1_max_mz", boost::program_options::value<double>(&ms1_max_mz)->default_value(3000), "ms1_max_mz")
-			("ms2_isolation_width", boost::program_options::value<double>(&ms2_isolation_width)->default_value(1), "ms2_isolation_width")
-			("dynamic_exclusion_enabled", boost::program_options::value<bool>(&dynamic_exclusion_enabled)->default_value(true), "dynamic_exclusion_enabled")
-			("dynamic_exclusion_tolerance", boost::program_options::value<double>(&dynamic_exclusion_tolerance)->default_value(0.05), "dynamic_exclusion_tolerance")
-			("dynamic_exclusion_time", boost::program_options::value<int>(&dynamic_exclusion_time)->default_value(30), "dynamic_exclusion_time")
+			("acquisition_algorithm_params", boost::program_options::value<std::vector<std::string>>(&acquisition_param_values)->multitoken(), "acquisition_algorithm_params")
+			("ms1_scan_time", boost::program_options::value<double>(&ms1_scan_time)->default_value(0.256), "ms1_scan_time")
+			("ms2_scan_time", boost::program_options::value<double>(&ms2_scan_time)->default_value(0.064), "ms2_scan_time")
+			("scan_overhead_time", boost::program_options::value<double>(&scan_overhead_time)->default_value(0.015), "scan_overhead_time")
 			("acquisition_length", boost::program_options::value<int>(&acquisition_length)->default_value(3600), "acquisition_length")
 			("fasta", boost::program_options::value<std::string>(&fasta_in_path), "acquisition fasta_in_path")
 			("elution_tau", boost::program_options::value<double>(&elution_tau)->default_value(4), "elution_tau")
 			("elution_sigma", boost::program_options::value<double>(&elution_sigma)->default_value(6), "elution_sigma")
-			("max_ms1_injection_time", boost::program_options::value<double>(&max_ms1_injection_time)->default_value(0.2), "max_ms1_injection_time")
-			("max_ms2_injection_time", boost::program_options::value<double>(&max_ms2_injection_time)->default_value(0.5), "max_ms2_injection_time")
-			("ms1_target_total_ion_count", boost::program_options::value<double>(&ms1_target_total_ion_count)->default_value(1e6), "ms1_target_total_ion_count")
-			("ms2_target_total_ion_count", boost::program_options::value<double>(&ms2_target_total_ion_count)->default_value(1e5), "ms2_target_total_ion_count")
 			("resolution", boost::program_options::value<double>(&resolution)->default_value(60000), "resolution")
 			("dynamic_range", boost::program_options::value<double>(&dynamic_range)->default_value(5000), "dynamic_range")
 			("db_search_min_mass", boost::program_options::value<double>(&db_search_min_mass)->default_value(200), "db_search_min_mass")
@@ -190,8 +212,12 @@ int main(int argc, const char ** argv) {
 			("db_search_min_enzymatic_termini", boost::program_options::value<int>(&db_search_min_enzymatic_termini)->default_value(2), "db_search_min_enzymatic_termini")
 			("db_search_mass_tolerance", boost::program_options::value<double>(&db_search_mass_tolerance)->default_value(.05), "db_search_mass_tolerance")
 			("db_search_PTM", boost::program_options::value<std::vector<DBPTM> >(&PTMs)->multitoken(), "PTMs")
-			("db_search_enzyme", boost::program_options::value<std::vector<DBEnzyme> >(&enzymes)->multitoken(), "enzymes")
-			("null_lambda", boost::program_options::value<double>(&null_lambda)->default_value(6), "null_lambda")
+			("db_search_enzyme", boost::program_options::value<std::vector<DBEnzyme>>(&enzymes)->multitoken(), "enzymes")
+			("db_search_null_lambda", boost::program_options::value<double>(&null_lambda)->default_value(6), "db_search_null_lambda")
+			("max_ms1_injection_time", boost::program_options::value<double>(&max_ms1_injection_time)->default_value(0.2), "max_ms1_injection_time")
+			("max_ms2_injection_time", boost::program_options::value<double>(&max_ms2_injection_time)->default_value(0.5), "max_ms2_injection_time")
+			("ms1_target_total_ion_count", boost::program_options::value<double>(&ms1_target_total_ion_count)->default_value(1e6), "ms1_target_total_ion_count")
+			("ms2_target_total_ion_count", boost::program_options::value<double>(&ms2_target_total_ion_count)->default_value(1e5), "ms2_target_total_ion_count")
 			;
 	boost::program_options::variables_map vm_config;
 	std::ifstream config_file(param_file_path.c_str());
@@ -201,57 +227,68 @@ int main(int argc, const char ** argv) {
 
 
 	ElutionShapeSimulator elution_shape_simulator(elution_tau, elution_sigma);
-	std::unique_ptr<GroundTruthDatabase> db = std::unique_ptr<GroundTruthDatabase>(new GroundTruthDatabase(sqlite_in_path, false));
-	std::unique_ptr<Instrument> instrument = std::unique_ptr<Instrument>(new Instrument(resolution, dynamic_range));
-	TopNParameters params(ms2_isolation_width, ms1_min_mz, ms1_max_mz, dynamic_exclusion_tolerance,
-						  dynamic_exclusion_time, num_ms2, dynamic_exclusion_enabled, max_ms1_injection_time, max_ms2_injection_time,
-						  ms1_target_total_ion_count, ms2_target_total_ion_count);
-	std::unique_ptr<AcquisitionController> controller = std::unique_ptr<AcquisitionController>(new TopN(params));
+	std::unique_ptr<GroundTruthText> db = std::unique_ptr<GroundTruthText>(new GroundTruthText(sqlite_in_path, false));
+	std::unique_ptr<Instrument> instrument = std::unique_ptr<Instrument>(new Instrument(resolution, dynamic_range, ms1_scan_time, ms2_scan_time,
+																						scan_overhead_time, max_ms1_injection_time,
+																						max_ms2_injection_time, ms1_target_total_ion_count,
+																						ms2_target_total_ion_count));
+
 	Sequencer sequencer(fasta_in_path, PTMs, enzymes, db_search_mass_tolerance, db_search_max_missed_cleavages, db_search_min_enzymatic_termini, db_search_min_mass, db_search_max_mass, db_search_max_dynamic_mods, null_lambda);
 	Oracle oracle(db.get(), instrument.get(), elution_shape_simulator);
-	MzMLWriter writer(mzml_out_path);
+	MzMLWriter mzml_writer(mzml_out_path);
 	FidoWriter fido_writer(fido_out_path);
+
+	AcquisitionController* controller = get_controller(acquisition_algorithm_name, acquisition_param_values);
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	double current_time = 3600;
+	int ms1_count = 0;
+	int ms2_count = 0;
+	int quality_ms2_count = 0;
+	double current_time = 0;
 
-	//while (current_time <= acquisition_length) {
-	while (current_time <= 3700.0) {
+	std::cout << "Simulating Acquisition:" << std::endl;
+
+	while (current_time <= acquisition_length) {
 		std::unique_ptr<ScanRequest> scan_request = controller->get_scan_request(current_time);
 		std::unique_ptr<Scan> scan = oracle.get_scan_data(scan_request.get(), current_time);
 
 		if (scan->scan_type == Scan::ScanType::MS2) {
+			ms2_count++;
 			MS2Scan* tmp_scan = static_cast<MS2Scan*>(scan.get());
 			sequencer.sequence_ms2_scan(tmp_scan);
 
-			if (tmp_scan->probability > 0 && tmp_scan->peptide != "DECOY") {
+			if (tmp_scan->probability >= 0 && tmp_scan->peptide != "DECOY") {
 				fido_writer.write_peptide(tmp_scan->probability, tmp_scan->peptide, tmp_scan->proteins);
+				if (tmp_scan->probability >= .9) quality_ms2_count++;
 			}
 		} else {
-			std::cout << "MS1!" << std::endl;
+			ms1_count++;
 		}
 
 		controller->process_scan(scan.get());
 		current_time += scan->elapsed_time;
 
-		if (scan->scan_id % 100 == 0) {
-			std::cout << "Current time: " << current_time << " Elapsed time: " << scan->elapsed_time << " ScanType: " << scan->scan_type << " Num peaks: " << scan->peaks.size() << std::endl;
+		if (scan->scan_id % 20 == 0) {
+			std::cout << "\rCurrent time: " << current_time << " seconds. MS1 count: " << ms1_count << ". MS2 count: " << ms2_count << ". Num PSMs >= 0.9: " << quality_ms2_count << std::flush;
 		}
 
-		writer.add_to_write_buffer(std::move(scan));
-		if (writer.buffer.size() > 100) writer.write_buffer();
+		mzml_writer.add_to_scan_buffer(std::move(scan));
+		if (mzml_writer.buffer.size() > 100) mzml_writer.write_buffer();
 	}
 
-	writer.write_buffer();
-	writer.output_file_end();
-	writer.close_file();
+	std::cout << "\rCurrent time: " << current_time << " seconds. MS1 count: " << ms1_count << ". MS2 count: " << ms2_count << ". Num PSMs >= 0.9: " << quality_ms2_count << std::endl;
+
+	mzml_writer.write_buffer();
+	mzml_writer.output_file_end();
+
+	mzml_writer.close_file();
 	fido_writer.close_file();
 
 	auto end = std::chrono::high_resolution_clock::now();
 
+	std::cout << "Simulation Complete." << std::endl;
 	std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::seconds>(end-start).count() << " seconds" << std::endl;
-
 
 	return 0;
 }

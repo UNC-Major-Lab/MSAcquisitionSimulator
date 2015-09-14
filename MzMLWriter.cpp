@@ -55,7 +55,7 @@ void MzMLWriter::output_file_start() {
 	out.flush();
 }
 
-void MzMLWriter::add_to_write_buffer(std::unique_ptr<Scan> s) {
+void MzMLWriter::add_to_scan_buffer(std::unique_ptr<Scan> s) {
 	buffer.push_back(std::move(s));
 }
 

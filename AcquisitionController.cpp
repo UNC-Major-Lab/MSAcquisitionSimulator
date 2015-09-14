@@ -9,5 +9,9 @@ void AcquisitionController::process_scan(Scan* scan) {
 }
 
 std::unique_ptr<ScanRequest> AcquisitionController::get_scan_request(double current_time) {
-	return std::unique_ptr<ScanRequest>(new ScanRequest(0, 0, false, 0, 0));
+	return std::unique_ptr<ScanRequest>(new ScanRequest(0, 0, false));
+}
+
+void AcquisitionController::validate(const std::vector<std::string> &values) {
+
 }

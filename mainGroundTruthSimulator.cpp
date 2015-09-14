@@ -8,21 +8,26 @@
 #include <algorithm>
 #include <set>
 #include <chrono>
+
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/bind.hpp>
-#include "sqlite3.h"
+
 #include "BioLCCC/biolccc.h"
+
 #include "DefaultPTM.h"
 #include "DefaultEnzyme.h"
 #include "FastaParser.h"
 #include "PeptideGenerator.h"
 #include "IonizationSimulator.h"
-#include "GroundTruthDatabase.h"
-#include "Globals.h"
 #include "Histogram.h"
+#include "GroundTruthText.h"
 
+#include "MSAcquisitionSimulatorConfig.h"
 
+/*
+ * Begin: Command line and config file parsing for user defined classes
+ */
 void validate(boost::any& v, const std::vector<std::string>& values, TERMINUS* target_type, int) {
 	if (values[0][0] == 'N') v = TERMINUS::N_TERM;
 	else if (values[0][0] == 'C') v = TERMINUS::C_TERM;
@@ -65,7 +70,6 @@ void validate(boost::any& v, const std::vector<std::string>& values, DefaultPTM*
 	double site_probability;
 	double abundance;
 	double bind_energy;
-	double bind_area;
 	bool blocks_cleavage;
 	bool post_digestion;
 	std::string name;
@@ -87,7 +91,6 @@ void validate(boost::any& v, const std::vector<std::string>& values, DefaultPTM*
 			("abundance,a", boost::program_options::value<double>(&abundance), "")
 			("formula,m", boost::program_options::value<std::string>(&formula), "" )
 			("bind_energy,e", boost::program_options::value<double>(&bind_energy), "")
-			("bind_area,q", boost::program_options::value<double>(&bind_area), "")
 			("blocks_cleavage", boost::program_options::bool_switch(&blocks_cleavage),  "")
 			("post_digestion", boost::program_options::bool_switch(&post_digestion),"")
 			;
@@ -100,12 +103,21 @@ void validate(boost::any& v, const std::vector<std::string>& values, DefaultPTM*
 	boost::program_options::variables_map vm;
 	boost::program_options::store(boost::program_options::command_line_parser(result).options(general).run(), vm);
 	boost::program_options::notify(vm);
-	std::cout << name << " " << residues << " " << site_probability << " " << abundance << " " << formula <<
-			" " << bind_energy << " " << bind_area << " " << blocks_cleavage << " " << post_digestion << std::endl;
+
+	double bind_area = (bind_energy == 0) ? 0 : 1;
+
 	v = DefaultPTM(name, abbreviation, residues, formula, site_probability, bind_energy, bind_area, abundance, blocks_cleavage, post_digestion);
 }
+/*
+ * End: Command line and config file parsing for user defined classes
+ */
 
-void register_ptm(PTM *ptm, BioLCCC::ChemicalBasis &chemical_basis, GroundTruthDatabase &db, std::map<PTM*,long> &ptm2id) {
+
+
+/*
+ * PTMs need to be added to BioLCCC for retention time prediction
+ */
+void register_ptm(PTM *ptm, BioLCCC::ChemicalBasis &chemical_basis) {
 	for (char residue : ptm->residues) {
 		std::string pep_abbr = ptm->abbreviation;
 		if (residue != 'n' && residue != 'c') pep_abbr += residue;
@@ -114,8 +126,95 @@ void register_ptm(PTM *ptm, BioLCCC::ChemicalBasis &chemical_basis, GroundTruthD
 															   ptm->molecular_formula.get_average_mass(),
 															   ptm->bind_area));
 	}
-	ptm2id[ptm] = db.insert_modification(*ptm);
 }
+
+
+/*
+ * Main function to perform all steps of the simulation
+ */
+void generate_ground_truth(IonizationEfficiencySimulator &ionization_efficiency_simulator, ElutionShapeSimulator &elution_shape_simulator,
+						   std::string fasta_in_path, PeptideGenerator &peptide_generator, BioLCCC::ChromoConditions &chromo_conditions,
+						   BioLCCC::ChemicalBasis &chemical_basis, double gradient_duration, GroundTruthText &db) {
+
+	std::cout << "MSAcquisitionSimulator version " << MSAcquisitionSimulator_VERSION_MAJOR << "." << MSAcquisitionSimulator_VERSION_MINOR << std::endl;
+	std::cout << "GroundTruthSimulator version " << GroundTruthSimulator_VERSION_MAJOR << "." << GroundTruthSimulator_VERSION_MINOR << std::endl;
+
+
+	std::vector<Protein> proteins = parse_FASTA(fasta_in_path.c_str());
+	std::map<Peptide,double> peptides;
+	std::map<Protein*, double> protein2max_abundance;
+
+	std::cout << std::endl;
+
+	auto start = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < proteins.size(); ++i) {
+		std::cout << "\rNumber of proteins processed: " << i << " of " << proteins.size() << ". Currently processing: "
+		<< proteins[i].name << ". Abundance: " << proteins[i].abundance << ". Sequence length: " << proteins[i].sequence.length() << std::flush;
+
+		protein2max_abundance[&proteins[i]] = 0;
+
+		std::vector<Peptide> peps = peptide_generator.generate_peptides(proteins[i]);
+		for (Peptide &p: peps) {
+			if (peptides.find(p) == peptides.end()) peptides[p] = p.abundance;
+			else peptides.at(p)+= p.abundance;
+		}
+	}
+
+	std::cout << "\rNumber of proteins processed: " << proteins.size() << " of " << proteins.size() << std::endl;
+
+	Histogram ion_histogram("Ion abundance distribution", "log10(ion abundance)", "log2(count)");
+
+	int num_processed_peptides = 0;
+	int num_processed_ions = 0;
+
+	for (std::pair<const Peptide, double> &pair : peptides) {
+		if (num_processed_peptides%1000 == 0) {
+			std::cout << "\rNumber of peptides processed: " << num_processed_peptides << " of " << peptides.size() << ". Number of ions passing abundance thresholds: " << num_processed_ions << std::flush;
+		}
+		++num_processed_peptides;
+
+		pair.second *= ionization_efficiency_simulator.calc_ionization_efficiency(pair.first);
+		if (pair.second <= PRUNE_THRESHOLD) continue;
+
+		double RT_fast = BioLCCC::calculateRT(pair.first.get_modified_sequence(), chemical_basis, chromo_conditions, 21);
+
+		if (RT_fast > gradient_duration+2) continue; // allow the RT center to be at most 2 minutes after the end of the gradient
+
+		std::map<int,double> charge_to_percentage = ionization_efficiency_simulator.calc_charge_distribution(pair.first);
+
+		for (std::pair<int,double> pair2 : charge_to_percentage) {
+			double new_abundance = pair2.second * pair.second;
+			if (new_abundance <= PRUNE_THRESHOLD) continue;
+
+			protein2max_abundance[pair.first.protein] = std::max(protein2max_abundance[pair.first.protein], new_abundance);
+
+			ion_histogram.add_data(new_abundance);
+
+			std::vector<double> isotope_mz;
+			std::vector<double> isotope_abundance;
+			mercury::mercury(isotope_mz, isotope_abundance, pair.first.get_composition(pair2.first), pair2.first, 10e-30);
+
+			db.insert_ions(new_abundance, pair2.first, RT_fast*60, &pair.first, isotope_mz, isotope_abundance, elution_shape_simulator);
+
+			++num_processed_ions;
+		}
+	}
+	std::cout << "\rNumber of peptides processed: " << peptides.size() << " of " << peptides.size() << ". Number of ions passing abundance thresholds: " << num_processed_ions << std::endl;
+
+	auto end = std::chrono::high_resolution_clock::now();
+
+	std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::seconds>(end-start).count() << " seconds" << std::endl;
+
+	Histogram max_int_histogram("Most abundant ion for protein", "log10(ion abundance)", "log2(count)");
+	for (std::pair<Protein*,double> pair : protein2max_abundance) {
+		max_int_histogram.add_data(pair.second);
+	}
+
+	ion_histogram.print_histogram();
+	max_int_histogram.print_histogram();
+}
+
+
 
 int main(int argc, const char ** argv) {
 
@@ -146,7 +245,7 @@ int main(int argc, const char ** argv) {
 	boost::program_options::options_description general("USAGE: GroundTruthSimulator [options] input.fasta\n\nOptions");
 	general.add_options()
 			("help", "Print usage and exit.")
-			("param,p", boost::program_options::value<std::string>(&param_file_path)->default_value("ground_truth.params"), "Input path to parameter file.")
+			("config,c", boost::program_options::value<std::string>(&param_file_path)->default_value("ground_truth.conf"), "Input path to config file.")
 			("sqlite_out_path,o", boost::program_options::value<std::string>(&sqlite_out_path)->default_value("sample.sqlite"), "output path for sampled FASTA file.")
 			;
 
@@ -202,113 +301,23 @@ int main(int argc, const char ** argv) {
 	chromo_conditions.setGradient(BioLCCC::Gradient(gradient_percent_b_start, gradient_percent_b_end, gradient_duration));
 	chromo_conditions.setFlowRate(gradient_flow_rate);
 
-
-	GroundTruthDatabase db(sqlite_out_path, true);
+	GroundTruthText db(sqlite_out_path, true);
 	PeptideGenerator peptide_generator = PeptideGenerator(PTMs, enzymes);
 	IonizationEfficiencySimulator ionization_efficiency_simulator;
-	std::map<PTM*,long> ptm2id;
-
-	for (PTM* ptm : peptide_generator.modification_simulator.pre_digestion_modifications) {
-		register_ptm(ptm, chemical_basis, db, ptm2id);
-	}
-	for (PTM* ptm : peptide_generator.modification_simulator.post_digestion_modifications) {
-		register_ptm(ptm, chemical_basis, db, ptm2id);
-	}
-
-
-
-
-
-
-
-	std::vector<Protein> proteins = parse_FASTA(fasta_in_path.c_str());
-	std::map<Protein*, long> protein2id;
-	std::map<Peptide,double> peptides;
-	std::map<Protein*, double> protein2max_abundance;
-
-
-	std::cout << std::endl;
-
-	auto start = std::chrono::high_resolution_clock::now();
-	//for (int i = 0; i < proteins.size(); ++i) {
-	for (int i = 0; i < 1000; i++) {
-		std::cout << "\rNumber of proteins processed: " << i << " of " << proteins.size() << ". Currently processing: "
-					<< proteins[i].name << ". Abundance: " << proteins[i].abundance << ". Sequence length: " << proteins[i].sequence.length() << std::flush;
-
-		protein2id[&proteins[i]] = db.insert_protein(proteins[i]);
-		protein2max_abundance[&proteins[i]] = 0;
-
-		std::vector<Peptide> peps = peptide_generator.generate_peptides(proteins[i]);
-		for (Peptide &p: peps) {
-			if (peptides.find(p) == peptides.end()) peptides[p] = p.abundance;
-			else peptides.at(p)+= p.abundance;
-		}
-	}
-
-	std::cout << "\rNumber of proteins processed: " << proteins.size() << " of " << proteins.size() << std::endl;
-
-
-	Histogram ion_histogram("Ion abundance distribution", "log10(ion abundance)", "log2(count)");
 	ElutionShapeSimulator elution_shape_simulator(elution_tau, elution_sigma);
 
-
-	int num_processed_peptides = 0;
-	int num_processed_ions = 0;
-	int pruned_ionization = 0;
-	int pruned_gradient = 0;
-	for (std::pair<const Peptide, double> &pair : peptides) {
-		if (num_processed_peptides%1000 == 0) {
-			std::cout << "\rNumber of peptides processed: " << num_processed_peptides << " of " << peptides.size() << ". Number of ions passing abundance thresholds: " << num_processed_ions << std::flush;
-		}
-		++num_processed_peptides;
-
-		pair.second *= ionization_efficiency_simulator.calc_ionization_efficiency(pair.first);
-		if (pair.second <= PRUNE_THRESHOLD) {
-			++pruned_ionization;
-			continue;
-		}
-
-		double RT_fast = BioLCCC::calculateRT(pair.first.get_modified_sequence(), chemical_basis, chromo_conditions, 21);
-
-		if (RT_fast > gradient_duration+2) {
-			++pruned_gradient;
-			continue;
-		}
-
-		long peptide_id = db.insert_peptide(pair.first, protein2id.at(pair.first.protein), ptm2id);
-		std::map<int,double> charge_to_percentage = ionization_efficiency_simulator.calc_charge_distribution(pair.first);
-
-		for (std::pair<int,double> pair2 : charge_to_percentage) {
-			double new_abundance = pair2.second * pair.second;
-			if (new_abundance <= PRUNE_THRESHOLD) continue;
-
-
-
-			protein2max_abundance[pair.first.protein] = std::max(protein2max_abundance[pair.first.protein], new_abundance);
-
-			ion_histogram.add_data(new_abundance);
-
-			std::vector<double> isotope_mz;
-			std::vector<double> isotope_abundance;
-			mercury::mercury(isotope_mz, isotope_abundance, pair.first.get_composition(pair2.first), pair2.first, 10e-30);
-
-			db.insert_ions(new_abundance, pair2.first, RT_fast*60, peptide_id, isotope_mz, isotope_abundance, elution_shape_simulator);
-			++num_processed_ions;
-		}
+	for (PTM* ptm : peptide_generator.modification_simulator.pre_digestion_modifications) {
+		register_ptm(ptm, chemical_basis);
 	}
-	std::cout << "\rNumber of peptides processed: " << peptides.size() << " of " << peptides.size() << ". Number of ions passing abundance thresholds: " << num_processed_ions << std::endl;
-
-	auto end = std::chrono::high_resolution_clock::now();
-
-	std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::seconds>(end-start).count() << " seconds" << std::endl;
-
-	Histogram max_int_histogram("Most abundant ion for protein", "log10(ion abundance)", "log2(count)");
-	for (std::pair<Protein*,double> pair : protein2max_abundance) {
-		max_int_histogram.add_data(pair.second);
+	for (PTM* ptm : peptide_generator.modification_simulator.post_digestion_modifications) {
+		register_ptm(ptm, chemical_basis);
 	}
 
-	ion_histogram.print_histogram();
-	max_int_histogram.print_histogram();
+	generate_ground_truth(ionization_efficiency_simulator, elution_shape_simulator, fasta_in_path,
+						  peptide_generator, chromo_conditions, chemical_basis, gradient_duration, db);
 
+
+	std::cout << "Sorting ions by retention time. This might take a while.." << std::endl;
+	db.write_sorted_file(); // Must be sorted by retention time to make the AcquisitionSimulator faster.
 	return 0;
 }

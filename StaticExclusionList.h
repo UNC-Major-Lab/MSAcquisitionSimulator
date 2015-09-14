@@ -15,6 +15,8 @@ class StaticExclusionList : public ExclusionList<StaticExclusionListEntry> {
 private:
 
 public:
+	StaticExclusionList() {}
+
 	StaticExclusionList(double mz_tolerance) : ExclusionList(mz_tolerance) {}
 
 	void filter_by_list(std::vector<BasicPeak> &peaks, double current_time);
