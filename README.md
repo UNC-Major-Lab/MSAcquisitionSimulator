@@ -23,7 +23,7 @@ if g++ and/or boost are not in your path, use this command:
 $ cmake ../src -DCMAKE_CXX_COMPILER=/path/to/g++ -DBOOST_ROOT=/path/to/boost/root/boost-1.48.0/
 ```
 The three compiled binary files, *FASTASampler*, *GroundTruthSimulator*, and *AcquisitionSimulator* should be in [project_root]/bin/  
-*** 
+
 ##**Usage**  
 
 MSAcquisitionSimulator comprises of three separate programs.  
@@ -53,7 +53,7 @@ Options:
                                         output path for sampled FASTA file.
 ```
 
-*GroundTruthSimulator* takes as input the sampled .fasta file from *FASTASampler* and a configuration file. An example configuration file is found in the root directory: *ground_truth.conf*. This program generates the ground truth data necessary for acquisition simulation. It models post-translational modifications (PTMs), digestion, chromatographic separation, electrospray ionization, and isotopic distributions.
+*GroundTruthSimulator* takes as input the sampled .fasta file from *FASTASampler* and a configuration file. An example configuration file is found in the root directory: *ground_truth.conf*. This program outputs the ground truth data necessary for acquisition simulation. It models post-translational modifications (PTMs), digestion, chromatographic separation, electrospray ionization, and isotopic distributions.
 
 ```Shell
 $ ./GroundTruthSimulator --help
@@ -65,9 +65,25 @@ Options:
   -c [ --config ] arg (=ground_truth.conf)
                                         Input path to config file.
   -o [ --ground_truth_out_path ] arg (=ground_truth.tab)
-                                       output path for ground truth file.
+                                        Output path for ground truth file.
 
 ```
+
+*AcquisitionSimulator* takes as input the ground truth file from *GroundTruthSimulator* and a configuration file. An example configuration file is found in the root directory: *acquisition.conf*. This program simulates a user selected data-dependent acquisition algorithm on the ground truth data. It models chromatographic elution shape, ion accumulation, MS1 spectra, scan time durations, and database search peptide-spectrum-matches (PSMs). It currently does not simulate MS2 fragmentation spectra. The output includes an mzML file and a .fido file. The .fido file includes all PSMs in the format required for Fido to perform protein inference. Fido is available here: http://noble.gs.washington.edu/proj/fido/
+
+```Shell
+$ ./AcquisitionSimulator --help
+
+USAGE: AcquisitionSimulator [options] ground_truth.tab
+
+Options:
+  --help                                Print usage and exit.
+  -c [ --conf ] arg (=acquisition.conf) Input path to config file.
+  -o [ --mzml_out_path ] arg (=sample.mzML)
+                                        output path for mzML file.
+  -f [ --fido_out_path ] arg (=sample.fido)
+                                        output path for fido file.
+``` 
 
 ##**Simulator Details**
 
