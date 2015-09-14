@@ -1,6 +1,5 @@
 #**MSAcquisitionSimulator**
 
-***
 ##**Installation Procedures**   
   
 **Prerequisites**  
