@@ -64,8 +64,8 @@ Options:
   --help                                Print usage and exit.
   -c [ --config ] arg (=ground_truth.conf)
                                         Input path to config file.
-  -o [ --sqlite_out_path ] arg (=sample.sqlite)
-                                        output path for sampled FASTA file.
+  -o [ --ground_truth_out_path ] arg (=ground_truth.tab)
+                                       output path for ground truth file.
 
 ```
 
