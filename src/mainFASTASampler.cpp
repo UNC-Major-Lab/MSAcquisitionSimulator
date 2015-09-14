@@ -6,7 +6,7 @@
 #include <boost/program_options.hpp>
 #include <boost/random.hpp>
 #include <chrono>
-#include "FastaParser.h"
+#include "FASTAParser.h"
 #include "Protein.h"
 
 #include "MSAcquisitionSimulatorConfig.h"
