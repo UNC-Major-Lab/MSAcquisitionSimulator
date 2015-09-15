@@ -223,7 +223,7 @@ while (current_time < acquisition_length) {
 
 * Implement a constructor that takes in a *std::vector\<std::string\>* parameter which should be parsed by boost::program_options. Use *AbstractTopN* as an example.  
 
-* Implement a function to create a new scan request (std::unique_ptr<ScanRequest> get_scan_request(double current_time))  
+* Implement a function to create a new scan request (std::unique_ptr\<ScanRequest\> get_scan_request(double current_time))  
 
 * A ScanRequest consists of the min_mz and max_mz for an MS1 and also a BasicPeak (mz, intensity) for the target precursor peak, and parent_scan_id for an MS2. Again see *AbstractTopN* for an example.  
 
