@@ -186,17 +186,17 @@ The probability of a peptide ionizing is sampled from a uniform random distribut
 **Charge state distribution**  
 The probability a peptide is has a charge of k is equal to a binomial distribution with n = the number of basic residues + 1 (for the n-terminus) and probability of success p = .7 + .3 x uniform_random(0,1).
 **Isotopic distribution**  
-An ion's isotopic distribution is determined with the libmercury++ library based on Rockwood, A.L. and Haimi, P.: "Efficent calculation of Accurate Masses of Isotopic Peaks", Journal of The American Society for Mass Spectrometry. JASMS 03-2263, 2006.
+An ion's isotopic distribution is determined with the libmercury++ library based on Rockwood, A.L. and Haimi, P.: "Efficent calculation of Accurate Masses of Isotopic Peaks", Journal of The American Society for Mass Spectrometry. JASMS 03-2263, 2006.  
 **Ion abundance**  
 We assume that digestion, modifications, ionization efficiency, charge, and isotopic distributions are all independent of each other. Therefore, an ion with charge z and isotope m has total abundance = Protein abundance x prob(digestion) x prob(PTMs) x prob(ionization efficiency) x prob(charge state = z) x prob(isotope = m)   
 If at any point in the simulation, the abundance gets below the filter threshold set in ground_truth.conf, then it is filtered and not included in the latter stages of the simulator.
 ###**Acquisition simulation**
 **MS1 Scan**  
 **Ion abundance**  
-The elution shape is numerically integrated using Simpson's method one millisecond at a time for every ion present at the current time and m/z constraints. This integration continues until we've reached the target total ion count, or the maximum injection time.
+The elution shape is numerically integrated using Simpson's method one millisecond at a time for every ion present at the current time and m/z constraints. This integration continues until we've reached the target total ion count, or the maximum injection time.  
 **Scan time**  
 **Raw signals** 
-The Cauchy-Lorentz distribution is used to model the peak shape for each ion. The raw signal is a mixture of these distributions and therefore the intensity at each m/z is equal to the sum of the contribution from each ion's distribution. These signals are then centroided. 
+The Cauchy-Lorentz distribution is used to model the peak shape for each ion. The raw signal is a mixture of these distributions and therefore the intensity at each m/z is equal to the sum of the contribution from each ion's distribution. These signals are then centroided.  
 **MS2 Scan**  
 **Sequence determination**  
 **Probability determination**  
