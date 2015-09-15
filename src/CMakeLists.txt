@@ -53,9 +53,9 @@ if (ZLIB_FOUND)
     target_link_libraries(AcquisitionSimulator ${ZLIB_LIBRARIES})
 endif()
 
-set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED OFF)
-set(Boost_USE_STATIC_RUNTIME ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
 
 #find_package(Boost)
 SET(BOOST_MIN_VERSION "1.48.0")

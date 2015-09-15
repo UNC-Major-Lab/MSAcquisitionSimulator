@@ -184,7 +184,7 @@ int main(int argc, const char ** argv) {
 	all.add(general).add(hidden);
 
 	boost::program_options::positional_options_description p;
-	p.add("sqlite_in_path", -1);
+	p.add("ground_truth_in_path", -1);
 
 	boost::program_options::variables_map vm;
 	boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(all).positional(p).run(), vm);
