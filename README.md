@@ -174,6 +174,24 @@ $ less human_fido_results.txt | grep "^0.9" | wc -l
 113
 ```
 
-##**Simulator Details**
+##**Simulator Details**  
+###**Ground truth generation**  
+**Peptide generation**  
+**Post-translational modifications**  
+**Digestion**  
+**Retention time**  
+**Ionization efficiency**  
+**Charge state distribution**  
+**Isotopic distribution**  
+**Ion abundance**  
+###**Acquisition simulation**
+**MS1 Scan**  
+**Ion abundance**  
+**Raw signals**  
+**Scan time**  
+**MS2 Scan**  
+**Sequence determination**  
+**Probability determination**  
+**Acquisition loop**  
 
 ##**Creating a Custom Acquisition Controller**
