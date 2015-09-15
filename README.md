@@ -177,14 +177,15 @@ $ less human_fido_results.txt | grep "^0.9" | wc -l
 ##**Simulator Details**  
 ###**Ground truth generation**  
 **Digestion**  
+*In silico* digestion is not performed in the same way as it is in a typical database search engine. Instead of having hard cut-offs for the maximum number of missed cleavages and minimum number of enzymatic termini, *GroundTruthSimulator* calculates the probability of each peptide's existence based on each enzyme's probability of cleavage. For a particular peptide, the probability of its existence from a single copy of a protein = 1 - PROB(not existing) = 1 - ( PROB(no cleavage at n-term) * PROB(no cleavage at c-term) * PRODUCT(PROB(cleavage at internal residue)) ). To determine the number of copies that will exist of this peptide, we multiply the final digestion probably by the protein abundance.  
 **Post-translational modifications**  
 **Retention time**  
-Determined via the BioLCCC library (http://pythonhosted.org/pyteomics.biolccc/)
+Determined via the BioLCCC library (http://pythonhosted.org/pyteomics.biolccc/)  
 **Elution shape**  
 **Ionization efficiency**  
 The probability of a peptide ionizing is sampled from a uniform random distribution between 0 and 1.  
 **Charge state distribution**  
-The probability a peptide is has a charge of k is equal to a binomial distribution with n = the number of basic residues + 1 (for the n-terminus) and probability of success p = .7 + .3 x uniform_random(0,1).
+The probability a peptide is has a charge of k is equal to a binomial distribution with n = the number of basic residues + 1 (for the n-terminus) and probability of success p = .7 + .3 x uniform_random(0,1).  
 **Isotopic distribution**  
 An ion's isotopic distribution is determined with the libmercury++ library based on Rockwood, A.L. and Haimi, P.: "Efficent calculation of Accurate Masses of Isotopic Peaks", Journal of The American Society for Mass Spectrometry. JASMS 03-2263, 2006.  
 **Ion abundance**  
