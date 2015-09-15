@@ -199,11 +199,19 @@ If at any point in the simulation, the abundance gets below the filter threshold
 The elution shape is numerically integrated using Simpson's method one millisecond at a time for every ion present at the current time and m/z constraints. This integration continues until we've reached the target total ion count, or the maximum injection time.  
 **Scan time**  
 The elapsed time for a scan is equal to max(injection_time, transient_time) + scan_overhead_time. This models the scan time for a QExactive-like instrument.  
-**Raw signals** 
+**Raw signals**  
 The Cauchy-Lorentz distribution is used to model the peak shape for each ion. The raw signal is a mixture of these distributions and therefore the intensity at each m/z is equal to the sum of the contribution from each ion's distribution. These signals are then centroided.  
 ####**MS2 Scan**  
 **Sequence determination**  
+
 **Probability determination**  
 **Acquisition loop**  
-
+```cpp
+while (current_time < acquisition_length) {
+	scanRequest = controller->get_scan_request();
+	scan = oracle->get_scan_data(scan_request, current_time);
+	controller->process_scan(scan);
+	current_time += scan->elapsed_time;
+}
+```
 ##**Creating a Custom Acquisition Controller**
