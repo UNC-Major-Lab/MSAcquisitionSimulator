@@ -202,11 +202,13 @@ The elapsed time for a scan is equal to max(injection_time, transient_time) + sc
 **Raw signals**  
 The Cauchy-Lorentz distribution is used to model the peak shape for each ion. The raw signal is a mixture of these distributions and therefore the intensity at each m/z is equal to the sum of the contribution from each ion's distribution. These signals are then centroided.  
 ####**MS2 Scan**  
+Raw signals are generated for the precursor ions only. Fragmentation is not modeled. Scan time and ion abundance are computed identically as an MS1 scan.  
 **Sequence determination**  
-
-**Probability determination**  
+First, the precursor ion fraction (PIF) for each peptide in the scan is calculated. The PIF is defined as the total ion intensity for all ions of a single peptide (i.e. including all isotopes) divided by the total ion intensity of the scan. Next, one peptide sequence is randomly selected from these peptides, with their selection probability equaling their PIF. If the peptide is in the peptide database used to simulate a database search, and within the user-defined mass tolerance, then the peptide-spectrum-match (PSM) sequence is set to this peptide. Otherwise, we randomly choose if the PSM maps to a decoy (50% probability). If it's a decoy, the peptide sequence is "DECOY_#". Otherwise, we randomly (uniformly) choose a sequence from the peptides in the database search that are within our mass tolerance of the targeted precursor m/z.  
+**Probability determination** 
+ 
 ####**Acquisition loop**  
-The acquisition simulator can be described by this pseudocode (almost identical to actual code). The controller (an acquisition algorithm) gives scan requests, the oracle generates data for that request, the controller processes that data, and the current_time is updated.  
+The acquisition simulator can be described by this pseudocode (nearly identical to the actual code). The controller (an acquisition algorithm) gives scan requests, the oracle generates data for that request, the controller processes that data, and the current time is updated.  
 ```cpp
 while (current_time < acquisition_length) {
 	scanRequest = controller.get_scan_request();
