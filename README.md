@@ -200,7 +200,7 @@ The elution shape is numerically integrated using Simpson's method one milliseco
 **Scan time**  
 The elapsed time for a scan is equal to max(injection_time, transient_time) + scan_overhead_time. This models the scan time for a QExactive-like instrument.  
 **Raw signals**  
-The Cauchy-Lorentz distribution is used to model the peak shape for each ion. The raw signal is a mixture of these distributions and therefore the intensity at each m/z is equal to the sum of the contribution from each ion's distribution. These signals are then centroided.  
+The Cauchy-Lorentz distribution is used to model the peak shape for each ion. The raw signal is a mixture of these distributions and therefore the intensity at each m/z is equal to the sum of the contribution from each ion's distribution. These signals are then centroided. A dynamic range cut-off is applied by removing all peaks whose signal intensity is less than the intensity of the base peak (most intense peak) divided by the user-specific dynamic range.
 ####**MS2 Scan**  
 Raw signals are generated for the precursor ions only. Fragmentation is not modeled. Scan time and ion abundance are computed identically as an MS1 scan.  
 **Sequence determination**  
