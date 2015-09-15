@@ -221,7 +221,7 @@ while (current_time < acquisition_length) {
 
 * Create a class that inherits the *AcquisitionController* interface.  
 
-* Implement a constructor that takes in a *std::vector<std::string>* parameter which should be parsed by boost::program_options. Use AbstractTopN as an example.  
+* Implement a constructor that takes in a *std::vector\<std::string\>* parameter which should be parsed by boost::program_options. Use AbstractTopN as an example.  
 
 * Implement a function to create a new scan request (std::unique_ptr<ScanRequest> get_scan_request(current_time))  
 
