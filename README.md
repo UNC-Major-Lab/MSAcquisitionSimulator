@@ -98,7 +98,7 @@ Abundance distribution statistics
 Min: 7.74848e+06	Max: 7.40865e+12	Dynamic range: 5.98052
 Median: 1.18331e+10	Mean: 8.63132e+10	Stdev: 3.98826e+11
 ```
-
+The next command was run with the default ground_truth.conf file.
 ```ShellSession
 $ ./GroundTruthSimulator -c ../ground_truth.conf -o ground_truth_human.tab sampled_human_swissprot.fasta 
 
