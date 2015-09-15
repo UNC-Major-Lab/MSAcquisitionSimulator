@@ -180,10 +180,11 @@ $ less human_fido_results.txt | grep "^0.9" | wc -l
 
 **Post-translational modifications**  
 **Retention time**  
+Determined via the BioLCCC library (http://pythonhosted.org/pyteomics.biolccc/)
 **Ionization efficiency**  
 Every peptide's ionization efficiency is sampled from a uniform random distribution between 0 and 1.  
 **Charge state distribution**  
-Every peptide's charge state distribution is equal a binomial distribution with n = the number of basic residues + 1 (for the n-terminus) and k = the charge (between 1 and n). The probability of success is .7 + .3 x random_uniform(0,1).
+Every peptide's charge state distribution is equal to a binomial distribution with n = the number of basic residues + 1 (for the n-terminus) and k = the charge (between 1 and n). The probability of success p = .7 + .3 x uniform_random(0,1).
 **Isotopic distribution**  
 **Ion abundance**  
 ###**Acquisition simulation**
