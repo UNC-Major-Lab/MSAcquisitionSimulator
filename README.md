@@ -221,16 +221,16 @@ while (current_time < acquisition_length) {
 
 * Create a class that inherits the *AcquisitionController* interface.  
 
-* Implement a constructor that takes in a *std::vector\<std::string\>* parameter which should be parsed by boost::program_options. Use AbstractTopN as an example.  
+* Implement a constructor that takes in a *std::vector\<std::string\>* parameter which should be parsed by boost::program_options. Use *AbstractTopN* as an example.  
 
-* Implement a function to create a new scan request (std::unique_ptr<ScanRequest> get_scan_request(current_time))  
+* Implement a function to create a new scan request (std::unique_ptr<ScanRequest> get_scan_request(double current_time))  
 
-* A ScanRequest consists of a double min_mz, double max_mz, and bool do_fragmentation for an MS1 and also a BasicPeak and parent_scan_id for an MS2. Again see AbstractTopN for an example.  
+* A ScanRequest consists of the min_mz and max_mz for an MS1 and also a BasicPeak (mz, intensity) for the target precursor peak, and parent_scan_id for an MS2. Again see *AbstractTopN* for an example.  
 
 * implement a function to process a new scan (void process_scan(Scan* scan)).  
 
-* An MS1Scan consists of a std::vector<BasicPeak> (mz and intensity), time_of_scan, elapsed_time, scan_id, scan_type (MS1 or MS2).  
+* An MS1Scan consists of a *std::vector\<BasicPeak\>*, time_of_scan, elapsed_time, scan_id, and scan_type (MS1 or MS2).  
 
-* An MS2Scan also contains the PIF for each peptide, total ion intensity, the targeted precursor peak, the PSM sequence and probability, and a list of proteins the peptide matches.  
+* An MS2Scan also contains the PIF for each peptide, total ion intensity, the targeted precursor peak, the PSM sequence and probability, and a list of proteins the peptide maps to.  
 		
-* Register your controller with MainAcquisitionSimulator.cpp so that it will be used when the acquisition.conf file gives the name for your controller.
+* Register your controller with mainAcquisitionSimulator.cpp get_controller function so that it will be used when the acquisition.conf file provides the name of your controller.
