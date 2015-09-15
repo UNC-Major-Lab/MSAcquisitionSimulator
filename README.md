@@ -206,6 +206,7 @@ The Cauchy-Lorentz distribution is used to model the peak shape for each ion. Th
 
 **Probability determination**  
 ####**Acquisition loop**  
+The acquisition simulator can be described by this pseudocode (almost identical to actual code). The controller (an acquisition algorithm) gives scan requests, the oracle generates data for that request, the controller processes that data, and the current_time is updated.  
 ```cpp
 while (current_time < acquisition_length) {
 	scanRequest = controller.get_scan_request();
