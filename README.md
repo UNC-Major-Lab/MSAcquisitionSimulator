@@ -233,4 +233,4 @@ while (current_time < acquisition_length) {
 
 * An MS2Scan also contains the PIF for each peptide, total ion intensity, the targeted precursor peak, the PSM sequence and probability, and a list of proteins the peptide maps to.  
 		
-* Register your controller with mainAcquisitionSimulator.cpp get_controller function so that it will be used when the acquisition.conf file provides the name of your controller.
+* Register your controller with the get_controller() function in mainAcquisitionSimulator.cpp so that it will be used when the acquisition.conf file provides the name of your controller.
