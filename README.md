@@ -227,7 +227,7 @@ while (current_time < acquisition_length) {
 
 * A ScanRequest consists of the min_mz and max_mz for an MS1 and also a BasicPeak (mz, intensity) for the target precursor peak, and parent_scan_id for an MS2. Again see *AbstractTopN* for an example.  
 
-* implement a function to process a new scan (void process_scan(Scan* scan)).  
+* Implement a function to process a new scan (void process_scan(Scan* scan)).  
 
 * An MS1Scan consists of a *std::vector\<BasicPeak\>*, time_of_scan, elapsed_time, scan_id, and scan_type (MS1 or MS2).  
 
