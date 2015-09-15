@@ -1,4 +1,5 @@
 #**MSAcquisitionSimulator**
+*MSAcquisitionSimulator* is a collection of three command-line tools that simulate data-dependent acquisition algorithms on *in silico* generated ground truth data of liquid chromatography-mass spectrometry proteomics experiments. 
 
 ##**Installation Procedures**   
   
@@ -10,7 +11,7 @@
 1. Clone the project onto your computer  
 2. Navigate to the project root directory  
 3. Execute the following commands:  
-```Shell
+```ShellSession
 $ cd build/
 $ cmake ../src
 $ make
@@ -19,18 +20,18 @@ $ ls
 AcquisitionSimulator  FASTASampler  GroundTruthSimulator
 ```
 if g++ and/or boost are not in your path, use this command:  
-```Shell
+```ShellSession
 $ cmake ../src -DCMAKE_CXX_COMPILER=/path/to/g++ -DBOOST_ROOT=/path/to/boost/root/boost-1.48.0/
 ```
 The three compiled binary files, *FASTASampler*, *GroundTruthSimulator*, and *AcquisitionSimulator* should be in [project_root]/bin/  
 
 ##**Usage**  
 
-MSAcquisitionSimulator comprises of three separate programs.  
+*MSAcquisitionSimulator* comprises of three separate programs.  
 
-*FASTASampler* takes a .fasta file as input (it can be gzipped) and outputs another .fasta file. The output contains a subset of proteins, with each protein header appended with a '#' followed by a value for that protein's abundance. The distribution of abundance and the size of the protein subset is determined by the user.
+*FASTASampler* takes a .fasta file as input (it can be gzipped) and outputs another .fasta file. The output contains a random subset of proteins, with each protein header appended with a '#' followed by a value for that protein's abundance. The distribution of abundance and the size of the protein subset is determined by the user.
 
-```Shell
+```ShellSession
 $ ./FASTASampler --help
 USAGE: FASTASampler [options] input.fasta
 
@@ -55,7 +56,7 @@ Options:
 
 *GroundTruthSimulator* takes as input the sampled .fasta file from *FASTASampler* and a configuration file. An example configuration file is found in the root directory: *ground_truth.conf*. This program outputs the ground truth data necessary for acquisition simulation. It models post-translational modifications (PTMs), digestion, chromatographic separation, electrospray ionization, and isotopic distributions.
 
-```Shell
+```ShellSession
 $ ./GroundTruthSimulator --help
 
 USAGE: GroundTruthSimulator [options] input.fasta
@@ -71,7 +72,7 @@ Options:
 
 *AcquisitionSimulator* takes as input the ground truth file from *GroundTruthSimulator* and a configuration file. An example configuration file is found in the root directory: *acquisition.conf*. This program simulates a user selected data-dependent acquisition algorithm on the ground truth data. It models chromatographic elution shape, ion accumulation, MS1 spectra, scan time durations, and database search peptide-spectrum-matches (PSMs). It currently does not simulate MS2 fragmentation spectra. The output includes an mzML file and a .fido file. The .fido file includes all PSMs in the format required for Fido to perform protein inference. Fido is available here: http://noble.gs.washington.edu/proj/fido/
 
-```Shell
+```ShellSession
 $ ./AcquisitionSimulator --help
 
 USAGE: AcquisitionSimulator [options] ground_truth.tab
@@ -85,15 +86,74 @@ Options:
                                         output path for fido file.
 ``` 
 **Example**
-```Shell
-./FASTASampler -dlognormal -m10 -s0.9 -p0.5 -o sampled_human.fasta uniprot_homo_sapiens_proteome.fasta.gz
+
+This is an example using 1% of the proteome:
+```ShellSession
+$ ./FASTASampler -dlognormal -m10 -s0.9 -p0.01 -o sampled_human_swissprot.fasta ~/Downloads/uniprot_homo_sapiens_proteome.fasta.gz 
 
 Number of proteins in FASTA: 91618
-Number of proteins sampled: 45809
+Number of proteins sampled: 916
 
 Abundance distribution statistics
-Min: 1.79238e+06	Max: 5.04653e+13	Dynamic range: 7.44956
-Median: 9.8866e+09	Mean: 8.38047e+10	Stdev: 5.53181e+11
+Min: 7.74848e+06	Max: 7.40865e+12	Dynamic range: 5.98052
+Median: 1.18331e+10	Mean: 8.63132e+10	Stdev: 3.98826e+11
+```
+
+```ShellSession
+$ ./GroundTruthSimulator -c ../ground_truth.conf -o ground_truth_human.tab sampled_human_swissprot.fasta 
+
+Modification registered: Carbamidomethyl car C H3,C2,N1,O1 1 0.77 0.9999 
+Modification registered: Oxidation ox M O1 0.5 1.8215 0.05 
+Enzyme registered: TrypsinR R P
+Enzyme registered: TrypsinK K P
+Enzyme registered: Random * 
+
+Number of proteins processed: 916 of 916. Currently processing: sp|Q9NQH7|XPP3_HUMAN. Abundance: 7.63723e+10. Sequence length: 50773gth: 6334
+Number of peptides processed: 2947632 of 2947632. Number of ions passing abundance thresholds: 3552781
+Elapsed time: 640 seconds
+
+Ion abundance distribution
+		x-axis: log2(count)
+14	*
+13	***
+12	********
+11	***********
+10	**************
+9	***************
+8	*****************
+7	******************
+6	*******************
+5	********************
+4	*********************
+y-axis: log10(ion abundance)
+
+Most abundant ion for protein
+		x-axis: log2(count)
+14	*
+13	
+12	*****
+11	********
+10	*********
+9	*********
+8	*******
+7	****
+6	***
+5	**
+y-axis: log10(ion abundance)
+Sorting ions by retention time. This might take a while..
+```
+The next command was run with the default acquisition.conf file.
+```ShellSession
+$ ./AcquisitionSimulator -c ../acquisition.conf -f human.fido ground_truth_human.tab
+
+PTM registered: Carbamidomethyl C H3,C2,N1,O1
+Enzyme registered: Trypsin RK P
+Parsing FASTA file and digesting proteins...
+Digestion complete.
+Simulating Acquisition:
+Current time: 10800 seconds. MS1 count: 2985. MS2 count: 26757. Num PSMs >= 0.9: 2365
+Simulation Complete.
+Elapsed time: 161 seconds
 ```
 
 ##**Simulator Details**
