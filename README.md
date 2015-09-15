@@ -205,13 +205,13 @@ The Cauchy-Lorentz distribution is used to model the peak shape for each ion. Th
 **Sequence determination**  
 
 **Probability determination**  
-**Acquisition loop**  
+####**Acquisition loop**  
 ```cpp
 while (current_time < acquisition_length) {
-	scanRequest = controller->get_scan_request();
-	scan = oracle->get_scan_data(scan_request, current_time);
-	controller->process_scan(scan);
-	current_time += scan->elapsed_time;
+	scanRequest = controller.get_scan_request();
+	scan = oracle.get_scan_data(scan_request, current_time);
+	controller.process_scan(scan);
+	current_time += scan.elapsed_time;
 }
 ```
 ##**Creating a Custom Acquisition Controller**
