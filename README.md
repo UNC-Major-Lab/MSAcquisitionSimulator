@@ -218,3 +218,19 @@ while (current_time < acquisition_length) {
 }
 ```
 ##**Creating a Custom Acquisition Controller**
+
+* Create a class that inherits the *AcquisitionController* interface.  
+
+* Implement a constructor that takes in a *std::vector<std::string>* parameter which should be parsed by boost::program_options. Use AbstractTopN as an example.  
+
+* Implement a function to create a new scan request (std::unique_ptr<ScanRequest> get_scan_request(current_time))  
+
+* A ScanRequest consists of a double min_mz, double max_mz, and bool do_fragmentation for an MS1 and also a BasicPeak and parent_scan_id for an MS2. Again see AbstractTopN for an example.  
+
+* implement a function to process a new scan (void process_scan(Scan* scan)).  
+
+* An MS1Scan consists of a std::vector<BasicPeak> (mz and intensity), time_of_scan, elapsed_time, scan_id, scan_type (MS1 or MS2).  
+
+* An MS2Scan also contains the PIF for each peptide, total ion intensity, the targeted precursor peak, the PSM sequence and probability, and a list of proteins the peptide matches.  
+		
+* Register your controller with MainAcquisitionSimulator.cpp so that it will be used when the acquisition.conf file gives the name for your controller.
