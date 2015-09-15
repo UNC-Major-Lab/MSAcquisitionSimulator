@@ -108,7 +108,7 @@ Enzyme registered: TrypsinR R P
 Enzyme registered: TrypsinK K P
 Enzyme registered: Random * 
 
-Number of proteins processed: 916 of 916. Currently processing: sp|Q9NQH7|XPP3_HUMAN. Abundance: 7.63723e+10. Sequence length: 50773gth: 6334
+Number of proteins processed: 916 of 916. Currently processing: sp|Q9NQH7|XPP3_HUMAN. Abundance: 7.63723e+10. Sequence length: 507
 Number of peptides processed: 2947632 of 2947632. Number of ions passing abundance thresholds: 3552781
 Elapsed time: 640 seconds
 
@@ -154,6 +154,24 @@ Simulating Acquisition:
 Current time: 10800 seconds. MS1 count: 2985. MS2 count: 26757. Num PSMs >= 0.9: 2365
 Simulation Complete.
 Elapsed time: 161 seconds
+```
+If you've installed Fido (http://noble.gs.washington.edu/proj/fido/) then you can perform protein inference on the results: 
+```ShellSession
+$ Fido human.fido .01 .1 .01 > human_fido_results.txt
+$ less human_fido_results.txt
+1 { sp|P57075|UBS3A_HUMAN }
+1 { sp|Q96N96|SPT13_HUMAN }
+1 { sp|Q86UQ4|ABCAD_HUMAN }
+1 { sp|P07202|PERT_HUMAN }
+1 { sp|Q9Y5L0|TNPO3_HUMAN }
+1 { sp|Q8IX01|SUGP2_HUMAN }
+1 { sp|Q9P2G1|AKIB1_HUMAN }
+1 { sp|Q96RG2|PASK_HUMAN }
+...
+$ less human_fido_results.txt | grep "^1" | wc -l
+68
+$ less human_fido_results.txt | grep "^0.9" | wc -l
+113
 ```
 
 ##**Simulator Details**
