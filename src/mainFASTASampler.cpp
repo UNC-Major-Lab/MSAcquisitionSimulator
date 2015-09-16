@@ -79,7 +79,7 @@ int main(int argc, const char ** argv) {
             ("distribution,d", boost::program_options::value<std::string>(&distribution), "Choose abundance distribution. Options: normal, lognormal")
             ("mean,m", boost::program_options::value<double>(&mean)->default_value(10), "The mean of the normal distribution, or m parameter for log-normal (log10).")
             ("stdev,s", boost::program_options::value<double>(&stdev)->default_value(0.9), "The standard deviation of the normal distribution, or s parameter for log-normal (log10). 99.97% of the data will be within +-3 standard deviations")
-            ("percentage,p", boost::program_options::value<double>(&percentage)->default_value(1), "Percentage of proteins to sample from. Takes precedence over --numprot.")
+            ("percentage,p", boost::program_options::value<double>(&percentage), "Percentage of proteins to sample from. Takes precedence over --numprot.")
             ("numprot,n", boost::program_options::value<int>(&num_prot), "Number of proteins to sample from FASTA.")
             ("fasta_out,o", boost::program_options::value<std::string>(&fasta_out_path)->default_value("sample.sim.fasta"), "output path for sampled FASTA file.")
             ;

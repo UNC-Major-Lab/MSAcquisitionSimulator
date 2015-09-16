@@ -13,7 +13,7 @@ void Histogram::add_data(double d) {
  }
 
 void Histogram::print_histogram() {
-
+	if (bin2count.size() == 0) return;
 	std::cout << "\n" << title << std::endl;
 	std::cout << "\t\t" << "x-axis: " << x_axis << std::endl;
 	for (int bin = max_bin; bin >= min_bin; bin--) {
