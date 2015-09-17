@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <map>
+#include <boost/tokenizer.hpp>
 #include "Element.h"
 #include "SubatomicParticle.h"
 #include "libmercury++.h"
@@ -21,7 +22,7 @@ public:
 
 	MolecularFormula(std::string formula);
 
-	MolecularFormula(std::map<const elements::ELEMENTS, int> element2count, std::map<const SubatomicParticle *, int> particle2count) :
+	MolecularFormula(std::map<int, int> element2count, std::map<const SubatomicParticle *, int> particle2count) :
 			element2count(element2count), particle2count(particle2count) {
 
 	}
@@ -29,7 +30,7 @@ public:
 	double get_monoisotopic_mass();
 	double get_average_mass();
 
-	std::map<const elements::ELEMENTS, int> element2count;
+	std::map<int, int> element2count;
 	std::map<const SubatomicParticle *, int> particle2count;
 };
 

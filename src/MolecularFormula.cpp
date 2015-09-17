@@ -2,9 +2,9 @@
 // Created by Dennis Goldfarb on 6/29/15.
 //
 
-#include <iostream>
+
 #include "MolecularFormula.h"
-#include <boost/tokenizer.hpp>
+
 
 MolecularFormula::MolecularFormula(std::string formula) {
 	boost::char_separator<char> sep(",");
@@ -30,7 +30,7 @@ MolecularFormula::MolecularFormula(std::string formula) {
 
 double MolecularFormula::get_monoisotopic_mass() {
 	double monoisotopic_mass = 0;
-	for (std::pair<const elements::ELEMENTS, int> pair : element2count) {
+	for (std::pair<int, int> pair : element2count) {
 		monoisotopic_mass += mercury::elemMasses[pair.first][0] * pair.second;
 	}
 

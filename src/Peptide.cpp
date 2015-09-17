@@ -50,13 +50,13 @@ std::vector<unsigned int> Peptide::get_composition() const {
 
 	for (char c : get_sequence()) {
 		const Residue* r = residues::name2residue.at(c);
-		for (std::pair<const elements::ELEMENTS, int> pair : r->molecular_formula.element2count) {
+		for (std::pair<int, int> pair : r->molecular_formula.element2count) {
 			composition[pair.first] += pair.second;
 		}
 	}
 
 	for (std::pair<int,PTM*> pair : index2mod_for_pep) {
-		for (std::pair<const elements::ELEMENTS, int> pair2 : pair.second->molecular_formula.element2count) {
+		for (std::pair<int, int> pair2 : pair.second->molecular_formula.element2count) {
 			composition[pair2.first] += pair2.second;
 		}
 	}

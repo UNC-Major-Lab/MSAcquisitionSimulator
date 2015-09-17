@@ -18,6 +18,6 @@ namespace elements {
 		Nd, Re, Hf, Th, He, Ar, Lu, U, Kr, Ir, In, Rh, Ho, Dy, Yb, Eu, Os, Pr, Tb, Er, Xe, Sc, Ne, Sm, Tm, Nb
 	};
 
-	extern std::map<const std::string, ELEMENTS> name2element;
+	extern std::map<const std::string, int> name2element;
 }
 #endif //MSACQUISITIONSIMULATOR_ELEMENT_H

@@ -7,7 +7,7 @@
 
 namespace elements {
 
-	std::map<const std::string, ELEMENTS> name2element = std::map<const std::string, ELEMENTS>{{"H",  H},
+	std::map<const std::string, int> name2element = std::map<const std::string, int>{{"H",  H},
 																							   {"C",  C},
 																							   {"N",  N},
 																							   {"O",  O},
