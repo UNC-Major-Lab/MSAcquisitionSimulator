@@ -17,7 +17,5 @@ namespace elements {
 		Pt, Gd, Hg, Mo, Sr, Ga, Ni, Pb, Ag, Bi, Tl, Cr, Rb, Zr, Ti, W, Be, V, Cd, Ba, Ta, Li, Cs, Pd, Ce, Ru, La,
 		Nd, Re, Hf, Th, He, Ar, Lu, U, Kr, Ir, In, Rh, Ho, Dy, Yb, Eu, Os, Pr, Tb, Er, Xe, Sc, Ne, Sm, Tm, Nb
 	};
-
-	extern std::map<const std::string, int> name2element;
 }
 #endif //MSACQUISITIONSIMULATOR_ELEMENT_H
