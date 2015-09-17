@@ -5,7 +5,7 @@
   
 **Prerequisites**  
 1. CMake 2.8+  
-2. g++ 4.7+  
+2. g++ 4.7.x or 4.8.x (Encounteded errors with 4.9.2)
 3. Boost 1.48+ including the compiled program_options library  
 **Build**  
 1. Clone the project onto your computer  
