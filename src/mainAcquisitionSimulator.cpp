@@ -20,7 +20,7 @@
 #include "DBPTM.h"
 #include "FidoWriter.h"
 #include "GroundTruthText.h"
-#include "StochasticN.h"
+#include "WeightedN.h"
 #include "RandomN.h"
 
 #include "MSAcquisitionSimulatorConfig.h"
@@ -114,8 +114,8 @@ AcquisitionController* get_controller(std::string name, std::vector<std::string>
 		return new TopN(acquisition_param_values);
 	} else if (name == "RandomN") {
 		return new RandomN(acquisition_param_values);
-	} else if (name == "StochasticN") {
-		return new StochasticN(acquisition_param_values);
+	} else if (name == "WeightedN") {
+		return new WeightedN(acquisition_param_values);
 	}
 
 	std::cout << "Acquisition algorithm name not recognized: " << name << ". Defaulting to TopN.";
@@ -268,6 +268,17 @@ int main(int argc, const char ** argv) {
 				fido_writer.write_peptide(tmp_scan->probability, tmp_scan->peptide, tmp_scan->proteins);
 				if (tmp_scan->probability >= .9) quality_ms2_count++;
 			}
+
+			/*double max_int = 0;
+			std::string max_pep;
+			for (auto itr = tmp_scan->peptide2intensity.begin(); itr != tmp_scan->peptide2intensity.end(); ++itr) {
+				if (itr->second > max_int) {
+					max_int = itr->second;
+					max_pep = itr->first;
+				}
+			}
+			std::cout << tmp_scan->precursor_peak.mz << " " << tmp_scan->precursor_peak.intensity << " " << tmp_scan->elapsed_time << " " << tmp_scan->TIC << " " << max_pep << " " << max_int / tmp_scan->TIC << " " << tmp_scan->peptide << std::endl;
+			*/
 		} else {
 			ms1_count++;
 		}
