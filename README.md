@@ -5,7 +5,7 @@
   
 **Prerequisites**  
 1. CMake 2.8+  
-2. g++ 4.7+  
+2. g++ 4.7.x or 4.8.x (Encounteded errors with 4.9.2)  
 3. Boost 1.48+ including the compiled program_options library  
 **Build**  
 1. Clone the project onto your computer  
@@ -177,7 +177,7 @@ $ less human_fido_results.txt | grep "^0.9" | wc -l
 ##**Simulator Details**  
 ###**Ground truth generation**  
 **Digestion**  
-*In silico* digestion is not performed in the same way as it is in a typical database search engine. Instead of having hard cut-offs for the maximum number of missed cleavages and minimum number of enzymatic termini, *GroundTruthSimulator* calculates the probability of each peptide's existence based on each enzyme's probability of cleavage. For a particular peptide, the probability of its existence from a single copy of a protein = 1 - PROB(not existing) = 1 - ( PROB(no cleavage at n-term) * PROB(no cleavage at c-term) * PRODUCT_over_all_missed_cleavages(PROB(cleavage)) ). To determine the number of copies that will exist of this peptide, we multiply the final digestion probability by the protein abundance.  
+*In silico* digestion is not performed in the same way as it is in a typical database search engine. Instead of having hard cut-offs for the maximum number of missed cleavages and minimum number of enzymatic termini, *GroundTruthSimulator* calculates the probability of each peptide's existence based on each enzyme's probability of cleavage. For a particular peptide, the probability of its existence from a single copy of a protein =(1 - ( PROB(no cleavage at n-term)) * (1-PROB(no cleavage at c-term)) * PRODUCT_over_all_missed_cleavages(PROB(cleavage)) ). To determine the number of copies that will exist of this peptide, we multiply the final digestion probability by the protein abundance.  
 **Post-translational modifications**  
 Similarly to digestion, *GroundTruthSimulator* does not have hard cut-offs for the maximum number of dynamic modifications. Even the idea of dynamic vs static modifications is not used. Each modification has a user-defined probability of occupying a particular site (e.g. there are probably serines that are *never* phosphorylated), and a user-defined percentage of that residue that will be modified (e.g. if a particular serine *is* chosen to be phosphorylated, maybe only 1% of it ever exists in that form at any given time). A "static" modification can be simulated by setting both values to 100%. Candidate modification sites are first randomly assigned to each protein based on each PTM's probability of occupying a particular site. For each peptide created during the digestion process, modification combinations are created and their probability existing from a single protein is calculated. Combinations with low abundance are pruned.  The probability of a particular modification combination = PRODUCT_over_all_modification_states(PROB(modification state)). The probability of the modification state being "no modification" for a specific peptide's residue is 1 - SUM_over_all_modifications(PROB(modification)).  
 **Retention time**  
@@ -187,7 +187,7 @@ The shape of an ion's elution profile is modeled by an Exponential Gaussian Hybr
 **Ionization efficiency**  
 The probability of a peptide ionizing is sampled from a uniform random distribution between 0 and 1.  
 **Charge state distribution**  
-The probability a peptide is has a charge of k is equal to a binomial distribution with n = the number of basic residues + 1 (for the n-terminus) and probability of success p = .7 + .3 x uniform_random(0,1).  
+The probability a peptide is has a charge of k is equal to a binomial distribution with n = the number of basic residues + 1 (for the n-terminus) and probability of success p = .7 + uniform_random(0,0.3).  
 **Isotopic distribution**  
 An ion's isotopic distribution is determined with the libmercury++ library based on Rockwood, A.L. and Haimi, P.: "Efficent calculation of Accurate Masses of Isotopic Peaks", Journal of The American Society for Mass Spectrometry. JASMS 03-2263, 2006.  
 **Ion abundance**  
@@ -204,7 +204,7 @@ The Cauchy-Lorentz distribution is used to model the peak shape for each ion. Th
 ####**MS2 Scan**  
 Raw signals are generated for the precursor ions only. Fragmentation is not modeled. Scan time and ion abundance are computed identically as an MS1 scan.  
 **Sequence determination**  
-First, the precursor ion fraction (PIF) is calculated for each peptide in the scan. The PIF of a peptide is defined as the sum of ion intensities for all ions of that peptide (i.e. the sum of all isotope intensities for that peptide) divided by the total ion intensity of the scan. Next, a peptide is randomly selected from these peptides - weighted by their PIF. If the peptide is in the peptide database used to simulate a database search, and within the user-defined mass tolerance, then the peptide-spectrum-match (PSM) sequence is set to this peptide. Otherwise, we randomly choose if the PSM maps to a decoy (50% probability). If it's a decoy, the peptide sequence is "DECOY_#". Otherwise, we randomly (uniformly) choose a sequence from the peptides in the database search that are within our mass tolerance of the targeted precursor m/z.  
+First, the precursor ion fraction (PIF) is calculated for each peptide in the scan. The PIF of a peptide is defined as the sum of ion intensities for all ions of that peptide (i.e. the sum of all isotope intensities for that peptide) divided by the total ion intensity of the scan. Next, a peptide is randomly selected from these peptides - weighted by their PIF. If the peptide is in the peptide database used to simulate a database search, and within the user-defined mass tolerance, then the peptide-spectrum-match (PSM) sequence is set to this peptide. Otherwise, we randomly choose if the PSM maps to a decoy (50% probability). If it's a decoy, the PSM is not written to the output file. Otherwise, we randomly (uniformly) choose a sequence from the peptides in the database search that are within our mass tolerance of the targeted precursor m/z.  
 **Probability determination**  
  If the PSM sequence was mapped to a peptide in the scan, then the PSM probability is set to that peptide's PIF. Otherwise, the PSM probability is sampled from a truncated exponential distribution between 0 and 1. This null distribution's lambda parameter is set by the user in the configuration file. Reasonable defaults for all parameters are provided.  
 ####**Acquisition loop**  
