@@ -70,7 +70,7 @@ Options:
 
 ```
 
-*AcquisitionSimulator* takes as input the ground truth file from *GroundTruthSimulator* and a configuration file. An example configuration file is found in the root directory: *acquisition.conf*. This program simulates a user selected data-dependent acquisition algorithm on the ground truth data. It models chromatographic elution shape, ion accumulation, MS1 spectra, scan time durations, and database search peptide-spectrum-matches (PSMs). It currently does not simulate MS2 fragmentation spectra. The output includes an mzML file and a .fido file. The .fido file includes all PSMs in the format required for Fido to perform protein inference. Fido is available here: http://noble.gs.washington.edu/proj/fido/
+*AcquisitionSimulator* takes as input the ground truth file from *GroundTruthSimulator* and a configuration file. An example configuration file is found in the root directory: *acquisition.conf*. One of the parameters in the config file is the path to the FASTA file used to simulate a database search, **make sure to edit this to a path on your computer!** This program simulates a user selected data-dependent acquisition algorithm on the ground truth data. It models chromatographic elution shape, ion accumulation, MS1 spectra, scan time durations, and database search peptide-spectrum-matches (PSMs). It currently does not simulate MS2 fragmentation spectra. The output includes an mzML file and a .fido file. The .fido file includes all PSMs in the format required for Fido to perform protein inference. Fido is available here: http://noble.gs.washington.edu/proj/fido/
 
 ```ShellSession
 $ ./AcquisitionSimulator --help
