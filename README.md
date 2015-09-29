@@ -173,7 +173,7 @@ $ less human_fido_results.txt | grep -v "REV_" | grep "^1" | wc -l
 $ less human_fido_results.txt | grep -v "REV_" | grep "^0.9" | wc -l
 113
 ```
-You can also use FidoChooseParameters, however it appears to choose a high protein prior probability, and we know what the true prior is.
+Decoy proteins are prepended with "REV_". You can also use FidoChooseParameters, however it appears to choose a high protein prior probability, and we know what the true prior is.
 ```ShellSession
 $ FidoChooseParameters human.fido targetDecoy.txt
 ...
