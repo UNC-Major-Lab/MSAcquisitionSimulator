@@ -168,10 +168,17 @@ $ less human_fido_results.txt
 1 { sp|Q9P2G1|AKIB1_HUMAN }
 1 { sp|Q96RG2|PASK_HUMAN }
 ...
-$ less human_fido_results.txt | grep "^1" | wc -l
+$ less human_fido_results.txt | grep -v "REV_" | grep "^1" | wc -l
 68
-$ less human_fido_results.txt | grep "^0.9" | wc -l
+$ less human_fido_results.txt | grep -v "REV_" | grep "^0.9" | wc -l
 113
+```
+You can also use FidoChooseParameters, however it appears to choose a high protein prior probability, and we know what the true prior is.
+```ShellSession
+$ FidoChooseParameters human.fido targetDecoy.txt
+...
+Using best gamma, alpha, beta = 0.7 0.04 0.01
+...
 ```
 
 ##**Simulator Details**  
@@ -204,7 +211,7 @@ The Cauchy-Lorentz distribution is used to model the peak shape for each ion. Th
 ####**MS2 Scan**  
 Raw signals are generated for the precursor ions only. Fragmentation is not modeled. Scan time and ion abundance are computed identically as an MS1 scan.  
 **Sequence determination**  
-First, the precursor ion fraction (PIF) is calculated for each peptide in the scan. The PIF of a peptide is defined as the sum of ion intensities for all ions of that peptide (i.e. the sum of all isotope intensities for that peptide) divided by the total ion intensity of the scan. Next, a peptide is randomly selected from these peptides - weighted by their PIF. If the peptide is in the peptide database used to simulate a database search, and within the user-defined mass tolerance, then the peptide-spectrum-match (PSM) sequence is set to this peptide. Otherwise, we randomly choose if the PSM maps to a decoy (50% probability). If it's a decoy, the PSM is not written to the output file. Otherwise, we randomly (uniformly) choose a sequence from the peptides in the database search that are within our mass tolerance of the targeted precursor m/z.  
+First, the precursor ion fraction (PIF) is calculated for each peptide in the scan. The PIF of a peptide is defined as the sum of ion intensities for all ions of that peptide (i.e. the sum of all isotope intensities for that peptide) divided by the total ion intensity of the scan. Next, a peptide is randomly selected from these peptides - weighted by their PIF. If the peptide is in the peptide database used to simulate a database search, and within the user-defined mass tolerance, then the peptide-spectrum-match (PSM) sequence is set to this peptide. Otherwise, we randomly (uniformly) choose a sequence from the peptides in the database search (including reverse decoys) that are within our mass tolerance of the targeted precursor m/z.  
 **Probability determination**  
  If the PSM sequence was mapped to a peptide in the scan, then the PSM probability is set to that peptide's PIF. Otherwise, the PSM probability is sampled from a truncated exponential distribution between 0 and 1. This null distribution's lambda parameter is set by the user in the configuration file. Reasonable defaults for all parameters are provided.  
 ####**Acquisition loop**  
