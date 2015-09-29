@@ -7,6 +7,20 @@
 void Sequencer::initialize(std::string fasta_in_path) {
 	std::cout << "Parsing FASTA file and digesting proteins..." << std::endl;
 	proteins = parse_FASTA(fasta_in_path.c_str());
+
+	std::vector<Protein> decoy_proteins;
+	/* Create reverse decoys */
+	for (Protein &protein : proteins) {
+		Protein decoy(protein);
+		decoy.name = "REV_" + decoy.name;
+		std::reverse(decoy.sequence.begin(), decoy.sequence.end());
+		decoy_proteins.push_back(decoy);
+	}
+
+	for (Protein protein : decoy_proteins) {
+		proteins.push_back(protein);
+	}
+
 	std::unordered_set<Peptide, KeyHasher> digested_peptides;
 
 	for (Protein &protein : proteins) {
@@ -46,14 +60,12 @@ void Sequencer::sequence_ms2_scan(MS2Scan *scan) {
 		for (std::string &pep : matched_peptides) candidate_peptides.insert(pep);
 	}
 
-	bool correct = false;
 	if (candidate_peptides.find(selected_seq) != candidate_peptides.end()) {
 		// correct sequence
 		probability = scan->peptide2intensity[selected_seq] / std::max(scan->TIC, scan->target_total_ion_count);
-		correct = true;
 	} else {
 		// incorrect sequence
-		if (candidate_peptides.size() == 0 || g_uniform_distribution(g_rng) < .5) {
+		if (candidate_peptides.size() == 0) {
 			selected_seq = "DECOY";
 		} else {
 			int random_index = (int) (std::floor(g_uniform_distribution(g_rng)*candidate_peptides.size()));
@@ -72,10 +84,6 @@ void Sequencer::sequence_ms2_scan(MS2Scan *scan) {
 	if (pep2prot.find(selected_seq) != pep2prot.end()) {
 		scan->proteins = pep2prot[selected_seq];
 	}
-
-	//if (correct)
-	//	std::cout << scan->precursor_peak.mz << "\t" << selected_seq << "\t" << probability <<  "\t" << candidate_peptides.size() << "\t" << correct << std::endl;
-
 }
 
 void Sequencer::digest_protein(Protein *protein, std::unordered_set<Peptide, KeyHasher> &digested_peptides) {
@@ -209,4 +217,34 @@ std::vector<std::string> Sequencer::get_peptides_within_range(double low_mass, d
 	}
 
 	return matched_peptides;
+}
+
+void Sequencer::write_target_decoy_file(std::string path) {
+	std::ofstream target_decoy_out(path);
+
+	bool first = true;
+	target_decoy_out << "{ ";
+	for (int i = 0; i < proteins.size(); i++) {
+		Protein &p = proteins[i];
+		if (!boost::starts_with(p.name, "REV_")) {
+			if (!first) target_decoy_out << ", ";
+			first = false;
+			target_decoy_out << p.name << " ";
+		}
+	}
+	target_decoy_out << " }" <<std::endl;
+
+	first = true;
+	target_decoy_out << "{ ";
+	for (int i = 0; i < proteins.size(); i++) {
+		Protein &p = proteins[i];
+		if (boost::starts_with(p.name, "REV_")) {
+			if (!first) target_decoy_out << ", ";
+			first = false;
+			target_decoy_out << p.name << " ";
+		}
+	}
+	target_decoy_out << " }" <<std::endl;
+
+	target_decoy_out.close();
 }

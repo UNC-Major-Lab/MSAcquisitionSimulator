@@ -134,6 +134,7 @@ int main(int argc, const char ** argv) {
 	std::string param_file_path;
 	std::string fido_out_path;
 	std::string fasta_in_path;
+	std::string target_decoy_out_path;
 	std::string acquisition_algorithm_name;
 
 	std::vector<std::string> acquisition_param_values;
@@ -173,6 +174,7 @@ int main(int argc, const char ** argv) {
 			("conf,c", boost::program_options::value<std::string>(&param_file_path)->default_value("acquisition.conf"), "Input path to config file.")
 			("mzml_out_path,o", boost::program_options::value<std::string>(&mzml_out_path)->default_value("sample.mzML"), "output path for mzML file.")
 			("fido_out_path,f", boost::program_options::value<std::string>(&fido_out_path)->default_value("sample.fido"), "output path for fido file.")
+			("target_decoy_out_path,d", boost::program_options::value<std::string>(&target_decoy_out_path)->default_value("targetDecoy.txt"), "output path for fido targetDecoy file.")
 			;
 
 	boost::program_options::options_description hidden("");
@@ -301,6 +303,8 @@ int main(int argc, const char ** argv) {
 
 	mzml_writer.close_file();
 	fido_writer.close_file();
+
+	sequencer.write_target_decoy_file(target_decoy_out_path);
 
 	auto end = std::chrono::high_resolution_clock::now();
 

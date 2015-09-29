@@ -11,6 +11,10 @@
 #include <map>
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <fstream>
+
+#include <boost/algorithm/string/predicate.hpp>
 
 #include "PTM.h"
 #include "Enzyme.h"
@@ -57,6 +61,8 @@ public:
 	}
 
 	void sequence_ms2_scan(MS2Scan *scan);
+
+	void write_target_decoy_file(std::string path);
 
 	std::vector<DBPTM*> ptms;
 	std::vector<DBEnzyme> enzymes;
