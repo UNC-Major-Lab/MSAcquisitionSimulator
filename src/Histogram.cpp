@@ -5,9 +5,11 @@
 #include "Histogram.h"
 
 void Histogram::add_data(double d) {
-	int bin = (int) floor(log10(d));
-	if (bin2count.find(bin) == bin2count.end()) bin2count[bin] = 0;
-	bin2count[bin]++;
+	if (d > 0 && !std::isinf(d)) {
+		int bin = (int) floor(log10(d));
+		if (bin2count.find(bin) == bin2count.end()) bin2count[bin] = 0;
+		bin2count[bin]++;
+	}
  }
 
 void Histogram::print_histogram() {

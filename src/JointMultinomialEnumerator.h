@@ -31,8 +31,6 @@ private:
 
 	static bool comp2(const pair<vector<short>,double>& a, const pair<vector<short>,double>& b);
 	static bool comp3(const vector<pair<double,T>>& a, const vector<pair<double,T>>& b);
-	double calc_probability(vector<short> &state);
-	void next_steps(const vector<short> &state, vector<vector<short>> &next_states);
 
 public:
 
@@ -40,12 +38,10 @@ public:
 	~JointMultinomialEnumerator() {}
 
 	int length_minus_one;
-	bool multi = false;
 	double threshold;
 	vector<vector<pair<double,T>>> log_probabilities;
-	unordered_set<vector<short>, KeyHasher> current_states_hash;
-	vector<pair<vector<short>,double>> min_heap;
-	vector<vector<short>> new_states;
+	vector<double> cumulative_probabilities;
+	vector<short> next_state;
 
 	bool has_next();
 	pair<vector<short>, double> next_combination();
@@ -56,28 +52,22 @@ public:
 template<class T>
 JointMultinomialEnumerator<T>::JointMultinomialEnumerator(vector<vector<pair<double,T>>> probabilities, double threshold)
 		: log_probabilities(probabilities), threshold(threshold) {
-	for (vector<pair<double,T>> &v : log_probabilities) {
-		if (v.size() > 2) multi = true;
-	}
 	sort(log_probabilities.begin(), log_probabilities.end(), comp3);
 
-	/*for (const vector<double> &v : log_probabilities) {
-		for (const double &p : v) {
-			cout << exp(p) << " ";
-		}
-		cout << endl;
-	}*/
 	length_minus_one = (int) log_probabilities.size()-1;
 
-	vector<short> init(log_probabilities.size(),0);
 	if (log_probabilities.size() == 0) {
 		cout << "List of states is empty" << endl;
 		return;
 	}
-	double prob = calc_probability(init);
-	if (prob >= threshold) {
-		current_states_hash.insert(init);
-		min_heap.push_back({init, prob});
+
+	cumulative_probabilities.push_back(0);
+	for (int i=0; i<= length_minus_one; i++) {
+		cumulative_probabilities.push_back(cumulative_probabilities[i]+log_probabilities[i][0].first);
+	}
+
+	if (std::exp(cumulative_probabilities[length_minus_one]) >= threshold) {
+		next_state = vector<short>(log_probabilities.size(),0);
 	} else {
 		cout << "Nothing passes threshold" << endl;
 	}
@@ -85,7 +75,7 @@ JointMultinomialEnumerator<T>::JointMultinomialEnumerator(vector<vector<pair<dou
 
 template<class T>
 bool JointMultinomialEnumerator<T>::has_next() {
-	return min_heap.size() > 0;
+	return next_state.size() > 0;
 }
 
 template<class T>
@@ -102,69 +92,30 @@ bool JointMultinomialEnumerator<T>::comp2(const pair<vector<short>, double> &a, 
 	return true;
 }
 
-template<class T>
-double JointMultinomialEnumerator<T>::calc_probability(vector<short> &state) {
-	double prob = 0;
-	for (int i = 0; i < state.size(); ++i) {
-		prob += log_probabilities[i][state[i]].first;
-	}
-	return exp(prob);
-}
-
 template <class T>
 pair<vector<short>, double> JointMultinomialEnumerator<T>::next_combination() {
-	vector<short> state = min_heap[0].first;
+	pair<vector<short>, double> comb(next_state, std::exp(cumulative_probabilities[length_minus_one]));
 
-	pair<vector<short>, double> comb(min_heap[0]);
+	int i = length_minus_one;
+	while (i <= length_minus_one && i >= 0) {
+		if (next_state[i] < log_probabilities[i].size() - 1 || next_state[i] == -1) {
+			next_state[i]++;
+			cumulative_probabilities[i+1] = cumulative_probabilities[i] + log_probabilities[i][next_state[i]].first;
 
-	current_states_hash.erase(state);
-	pop_heap(min_heap.begin(), min_heap.end(), comp2); min_heap.pop_back();
-
-	next_steps(state, new_states);
-
-	for (vector<short> &ns : new_states) {
-		if (current_states_hash.find(ns) == current_states_hash.end()) {
-			double prob = calc_probability(ns);
-			if (prob >= threshold) {
-				current_states_hash.insert(ns);
-				min_heap.push_back({ns, prob});
-				push_heap(min_heap.begin(), min_heap.end(), comp2);
+			if (std::exp(cumulative_probabilities[i+1]) < threshold) {
+				next_state[i] = -1;
+				i--;
+			} else {
+				i++;
 			}
+		} else {
+			next_state[i] = -1;
+			i--;
 		}
 	}
+	if (i == -1) next_state.clear();
 
 	return comb;
-}
-
-template<class T>
-void JointMultinomialEnumerator<T>::next_steps(const vector<short> &state, vector<vector<short>> &next_states) {
-	next_states.clear();
-
-	if (state[length_minus_one] == 0) {
-		vector<short> next_state(state);
-		next_state[length_minus_one] = 1;
-		next_states.push_back(next_state);
-	}
-
-	for (int i = length_minus_one; i>0; --i) {
-		if (state[i] == 1 && state[i-1] == 0) {
-			vector<short> next_state(state);
-			next_state[i] = 0;
-			next_state[i-1] = 1;
-			next_states.push_back(next_state);
-			break;
-		}
-	}
-
-	if (multi) {
-		for (int i = length_minus_one; i >= 0; --i) {
-			if (state[i] > 0 && state[i] < log_probabilities[i].size() - 1) {
-				vector<short> next_state(state);
-				next_state[i]++;
-				next_states.push_back(next_state);
-			}
-		}
-	}
 }
 
 #endif //MSACQUISITIONSIMULATOR_JOINTMULTINOMIALENUMERATOR_H
