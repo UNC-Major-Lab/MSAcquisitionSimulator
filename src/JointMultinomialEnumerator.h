@@ -51,7 +51,7 @@ public:
 
 template<class T>
 JointMultinomialEnumerator<T>::JointMultinomialEnumerator(vector<vector<pair<double,T>>> probabilities, double threshold)
-		: log_probabilities(probabilities), threshold(threshold) {
+		: log_probabilities(probabilities), threshold(std::log(threshold)) {
 	sort(log_probabilities.begin(), log_probabilities.end(), comp3);
 
 	length_minus_one = (int) log_probabilities.size()-1;
@@ -102,7 +102,7 @@ pair<vector<short>, double> JointMultinomialEnumerator<T>::next_combination() {
 			next_state[i]++;
 			cumulative_probabilities[i+1] = cumulative_probabilities[i] + log_probabilities[i][next_state[i]].first;
 
-			if (std::exp(cumulative_probabilities[i+1]) < threshold) {
+			if (cumulative_probabilities[i+1] < threshold) {
 				next_state[i] = -1;
 				i--;
 			} else {

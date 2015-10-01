@@ -29,7 +29,7 @@ public:
 
 	void insert_ions(double abundance, int charge, double rt, const Peptide* peptide,
 					 std::vector<double> &isotope_mz, std::vector<double> &isotope_abundance,
-					 ElutionShapeSimulator &elution_shape_simulator);
+					 ElutionShapeSimulator &elution_shape_simulato, int &num_processed_ionsr);
 
 	std::ofstream *out;
 	std::ifstream *in;

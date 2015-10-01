@@ -24,7 +24,7 @@ void GroundTruthText::close_file() {
 
 void GroundTruthText::insert_ions(double abundance, int charge, double rt, const Peptide *peptide,
 								  std::vector<double> &isotope_mz, std::vector<double> &isotope_abundance,
-								  ElutionShapeSimulator &elution_shape_simulator) {
+								  ElutionShapeSimulator &elution_shape_simulator, int &num_processed_ions) {
 
 	for (int i = 0; i < isotope_mz.size(); ++i) {
 		double mz = isotope_mz[i];
@@ -40,6 +40,7 @@ void GroundTruthText::insert_ions(double abundance, int charge, double rt, const
 
 		IonDAO ion(i, charge, peptide->start, peptide->end, iso_abundance, rt, rt_start, rt_end, mz, peptide->get_modified_sequence());
 		insert_ion(ion);
+		num_processed_ions++;
 	}
 }
 

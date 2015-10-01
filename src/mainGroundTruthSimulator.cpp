@@ -192,9 +192,7 @@ void generate_ground_truth(IonizationEfficiencySimulator &ionization_efficiency_
 			std::vector<double> isotope_abundance;
 			mercury::mercury(isotope_mz, isotope_abundance, pair.first.get_composition(pair2.first), pair2.first, 10e-30);
 
-			db.insert_ions(new_abundance, pair2.first, RT_fast*60, &pair.first, isotope_mz, isotope_abundance, elution_shape_simulator);
-
-			++num_processed_ions;
+			db.insert_ions(new_abundance, pair2.first, RT_fast*60, &pair.first, isotope_mz, isotope_abundance, elution_shape_simulator, num_processed_ions);
 		}
 	}
 	std::cout << "\rNumber of peptides processed: " << peptides.size() << " of " << peptides.size() << ". Number of ions passing abundance thresholds: " << num_processed_ions << std::endl;
