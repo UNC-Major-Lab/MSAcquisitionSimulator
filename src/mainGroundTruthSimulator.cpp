@@ -149,7 +149,7 @@ void generate_ground_truth(IonizationEfficiencySimulator &ionization_efficiency_
 		std::cout << "\rNumber of proteins processed: " << i << " of " << proteins.size() << ". Currently processing: "
 		<< proteins[i].name << ". Abundance: " << proteins[i].abundance << ". Sequence length: " << proteins[i].sequence.length() << std::flush;
 
-		protein2max_abundance[&proteins[i]] = 0;
+		protein2max_abundance[&proteins[i]] = 1;
 
 		std::vector<Peptide> peps = peptide_generator.generate_peptides(proteins[i]);
 		for (Peptide &p: peps) {
