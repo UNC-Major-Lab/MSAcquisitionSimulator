@@ -22,10 +22,11 @@ void GroundTruthText::close_file() {
 	}
 }
 
-void GroundTruthText::insert_ions(double abundance, int charge, double rt, const Peptide *peptide,
+int GroundTruthText::insert_ions(double abundance, int charge, double rt, const Peptide *peptide,
 								  std::vector<double> &isotope_mz, std::vector<double> &isotope_abundance,
-								  ElutionShapeSimulator &elution_shape_simulator, int &num_processed_ions) {
+								  ElutionShapeSimulator &elution_shape_simulator) {
 
+	int num_processed_ions = 0;
 	for (int i = 0; i < isotope_mz.size(); ++i) {
 		double mz = isotope_mz[i];
 		if (mz < MIN_MZ || mz > MAX_MZ) continue;
@@ -42,6 +43,7 @@ void GroundTruthText::insert_ions(double abundance, int charge, double rt, const
 		insert_ion(ion);
 		num_processed_ions++;
 	}
+	return num_processed_ions;
 }
 
 void GroundTruthText::write_sorted_file() {

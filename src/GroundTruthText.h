@@ -27,9 +27,9 @@ public:
 		close_file();
 	}
 
-	void insert_ions(double abundance, int charge, double rt, const Peptide* peptide,
+	int insert_ions(double abundance, int charge, double rt, const Peptide* peptide,
 					 std::vector<double> &isotope_mz, std::vector<double> &isotope_abundance,
-					 ElutionShapeSimulator &elution_shape_simulato, int &num_processed_ionsr);
+					 ElutionShapeSimulator &elution_shape_simulato);
 
 	std::ofstream *out;
 	std::ifstream *in;
