@@ -192,9 +192,7 @@ void generate_ground_truth(IonizationEfficiencySimulator &ionization_efficiency_
 			std::vector<double> isotope_abundance;
 			mercury::mercury(isotope_mz, isotope_abundance, pair.first.get_composition(pair2.first), pair2.first, 10e-30);
 
-			db.insert_ions(new_abundance, pair2.first, RT_fast*60, &pair.first, isotope_mz, isotope_abundance, elution_shape_simulator);
-
-			++num_processed_ions;
+			num_processed_ions += db.insert_ions(new_abundance, pair2.first, RT_fast*60, &pair.first, isotope_mz, isotope_abundance, elution_shape_simulator);
 		}
 	}
 	std::cout << "\rNumber of peptides processed: " << peptides.size() << " of " << peptides.size() << ". Number of ions passing abundance thresholds: " << num_processed_ions << std::endl;
@@ -297,6 +295,12 @@ int main(int argc, const char ** argv) {
 			;
 	boost::program_options::variables_map vm_config;
 	std::ifstream config_file(param_file_path.c_str());
+
+	if(!config_file.is_open()) {
+		std::cerr << "Unable to open configuration file: " << param_file_path << std::endl;
+		exit(1);
+	}
+
 	boost::program_options::store(boost::program_options::parse_config_file(config_file, config, true), vm_config);
 	boost::program_options::notify(vm_config);
 	//endregion

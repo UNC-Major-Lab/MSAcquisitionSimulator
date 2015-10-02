@@ -229,6 +229,12 @@ int main(int argc, const char ** argv) {
 			;
 	boost::program_options::variables_map vm_config;
 	std::ifstream config_file(param_file_path.c_str());
+
+	if(!config_file.is_open()) {
+		std::cerr << "Unable to open configuration file: " << param_file_path << std::endl;
+		exit(1);
+	}
+
 	boost::program_options::store(boost::program_options::parse_config_file(config_file, config, true), vm_config);
 	boost::program_options::notify(vm_config);
 	//endregion
