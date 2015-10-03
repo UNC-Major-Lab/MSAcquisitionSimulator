@@ -87,7 +87,7 @@ Options:
 ``` 
 **Example**
 
-You can download UniProt's human proteome here: http://www.uniprot.org/uniprot/?query=proteome:UP000005640 This is an example using 1% of the proteome:
+You can download UniProt's human proteome here: [UniProt](http://www.uniprot.org/uniprot/?query=proteome:UP000005640). This is an example using 1% of the proteome:
 ```ShellSession
 $ ./FASTASampler -dlognormal -m10 -s0.9 -p0.01 -o sampled_human_swissprot.fasta ~/Downloads/uniprot_homo_sapiens_proteome.fasta.gz 
 
