@@ -12,7 +12,8 @@
 2. Navigate to the project root directory  
 3. Execute the following commands:  
 ```ShellSession
-$ cd build/
+$ git clone https://github.com/DennisGoldfarb/MSAcquisitionSimulator.git
+$ cd MSAcquisitionSimulator/build/
 $ cmake ../src
 $ make
 $ cd ../bin/
