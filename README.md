@@ -181,6 +181,8 @@ $ FidoChooseParameters human.fido targetDecoy.txt
 Using best gamma, alpha, beta = 0.7 0.04 0.01
 ...
 ```
+The mzML file generated can be inspected with the jmzreader-gui among other tools (https://code.google.com/p/jmzreader/downloads/list). Below is a screenshot of a simulated MS1 scan.
+![Image of simulated MS1] (https://github.com/DennisGoldfarb/MSAcquisitionSimulator/blob/master/SimulatedMS1.png)
 
 ##**Simulator Details**  
 ###**Ground truth generation**  
