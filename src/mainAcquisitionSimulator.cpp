@@ -125,6 +125,7 @@ AcquisitionController* get_controller(std::string name, std::vector<std::string>
 
 
 int main(int argc, const char ** argv) {
+	auto start = std::chrono::high_resolution_clock::now();
 
 	std::cout << "MSAcquisitionSimulator Version " << MSAcquisitionSimulator_VERSION_MAJOR << "." << MSAcquisitionSimulator_VERSION_MINOR << "." << MSAcquisitionSimulator_VERSION_PATCH << std::endl;
 	std::cout << "AcquisitionSimulator Version " << AcquisitionSimulator_VERSION_MAJOR << "." << AcquisitionSimulator_VERSION_MINOR << "." << AcquisitionSimulator_VERSION_PATCH << std::endl;
@@ -253,8 +254,6 @@ int main(int argc, const char ** argv) {
 	FidoWriter fido_writer(fido_out_path);
 
 	AcquisitionController* controller = get_controller(acquisition_algorithm_name, acquisition_param_values);
-
-	auto start = std::chrono::high_resolution_clock::now();
 
 	int ms1_count = 0;
 	int ms2_count = 0;

@@ -24,11 +24,11 @@ void SpectrumAnalyzer::deisotope(std::vector<BasicPeak> &peaks) {
 				}
 			}
 
-			if (m1_peak == peaks.end()) continue;
+			if (m1_peak >= peaks.end()) continue;
 			auto m2_peak = std::next(m1_peak);
 			bool m2_found = false;
 
-			for (; m2_peak != peaks.end() && m2_peak->mz - m2_mz <= threshold; ++m2_peak) {
+			for (; m2_peak < peaks.end() && m2_peak->mz - m2_mz <= threshold; ++m2_peak) {
 				if (std::abs(m2_peak->mz - m2_mz) <= threshold && m2_peak->intensity < m1_peak->intensity) {
 					m2_found = true;
 					break;
@@ -38,8 +38,8 @@ void SpectrumAnalyzer::deisotope(std::vector<BasicPeak> &peaks) {
 			if (m1_found && m2_found) {
 				double next_mz = m2_mz+step;
 				double prev_int = m2_peak->intensity;
-				if (m2_peak != peaks.end()) {
-					for (auto next_peak = std::next(m2_peak); next_peak != peaks.end() && next_peak->mz - next_mz <= threshold;) {
+				if (m2_peak < peaks.end()) {
+					for (auto next_peak = std::next(m2_peak); next_peak < peaks.end() && next_peak->mz - next_mz <= threshold;) {
 						if (std::abs(next_peak->mz - next_mz) <= threshold && next_peak->intensity < prev_int) {
 							next_mz += step;
 							prev_int = next_peak->intensity;
@@ -50,7 +50,7 @@ void SpectrumAnalyzer::deisotope(std::vector<BasicPeak> &peaks) {
 					}
 				}
 				peaks.erase(m1_peak);
-				peaks.erase(m2_peak);
+				if (m2_peak < peaks.end()) peaks.erase(m2_peak);
 				break;
 			}
 		}

@@ -63,10 +63,12 @@ void Sequencer::sequence_ms2_scan(MS2Scan *scan) {
 	if (candidate_peptides.find(selected_seq) != candidate_peptides.end()) {
 		// correct sequence
 		probability = scan->peptide2intensity[selected_seq] / std::max(scan->TIC, scan->target_total_ion_count);
+		//std::cout << "True " << probability << std::endl;
 	} else {
 		// incorrect sequence
 		if (candidate_peptides.size() == 0) {
 			selected_seq = "DECOY";
+			//std::cout << "DECOY " << probability << std::endl;
 		} else {
 			int random_index = (int) (std::floor(g_uniform_distribution(g_rng)*candidate_peptides.size()));
 			random_index = std::min(random_index, (int) candidate_peptides.size()-1);
@@ -76,6 +78,17 @@ void Sequencer::sequence_ms2_scan(MS2Scan *scan) {
 
 			selected_seq = *itr;
 			probability = get_null_probability();
+
+			/*std::string forward = "DECOY ";
+
+			for (Protein* prot_itr : pep2prot[selected_seq]) {
+				if (!boost::algorithm::starts_with(prot_itr->name,"REV_")) {
+					forward = "Forward ";
+					break;
+				}
+			}
+
+			std::cout << forward << probability << std::endl;*/
 		}
 	}
 	scan->peptide = selected_seq;

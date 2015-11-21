@@ -39,41 +39,22 @@ int GroundTruthText::insert_ions(double abundance, int charge, double rt, const 
 
 		if (std::isnan(rt_start) || std::isnan(rt_end)) continue;
 
-		IonDAO ion(i, charge, peptide->start, peptide->end, iso_abundance, rt, rt_start, rt_end, mz, peptide->get_modified_sequence());
-		insert_ion(ion);
+		ions.push_back(IonTinyDAO(i, charge, iso_abundance, rt, rt_start, rt_end, mz, peptide));
 		num_processed_ions++;
 	}
 	return num_processed_ions;
 }
 
 void GroundTruthText::write_sorted_file() {
-	close_file();
-	std::ifstream in(path);
-	std::vector<IonDAO> ions;
+	std::sort(ions.begin(), ions.end(), IonTinyDAO::less_rt_start);
 
-	double abundance, rt, rt_start, rt_end, mz;
-	int neutrons, charge, peptide_start, peptide_end;
-	std::string modified_sequence;
-
-	while (!in.eof()) {
-		in >> abundance >> neutrons >> mz >> charge >> rt >> rt_start >> rt_end >> modified_sequence >> peptide_start >>
-		peptide_end;
-		ions.push_back(IonDAO(neutrons, charge, peptide_start, peptide_end, abundance, rt, rt_start, rt_end, mz, modified_sequence));
-	}
-
-	in.close();
-	out = new std::ofstream(path);
-	std::sort(ions.begin(), ions.end(), IonDAO::less_rt_start);
-
-	for (IonDAO &ion : ions) {
-		insert_ion(ion);
-	}
+	for (IonTinyDAO &ion : ions) insert_ion(ion);
 }
 
-void GroundTruthText::insert_ion(IonDAO &ion) {
+void GroundTruthText::insert_ion(IonTinyDAO &ion) {
 	*out << ion.abundance << "\t" << ion.neutrons << "\t" << ion.mz << "\t" << ion.charge << "\t" << ion.rt << "\t"
-	<< ion.rt_start << "\t" << ion.rt_end << "\t" << ion.modified_sequence << "\t" << ion.start
-	<< "\t" << ion.end << "\t" << std::endl;
+	<< ion.rt_start << "\t" << ion.rt_end << "\t" << ion.peptide->get_modified_sequence() << "\t" << ion.peptide->start
+	<< "\t" << ion.peptide->end << "\t" << std::endl;
 }
 
 std::vector<IonDAO *> GroundTruthText::get_ions_at_rt(double min_mz, double max_mz, double time) {

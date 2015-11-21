@@ -12,12 +12,14 @@
 #include "IonDAO.h"
 #include "Peptide.h"
 #include "ElutionShapeSimulator.h"
+#include "IonTinyDAO.h"
 
 class GroundTruthText {
 private:
 	void close_file();
-	void insert_ion(IonDAO &ion);
+	void insert_ion(IonTinyDAO &ion);
 	std::list<IonDAO*> current_ions;
+	std::vector<IonTinyDAO> ions;
 
 public:
 

@@ -12,7 +12,8 @@
 2. Navigate to the project root directory  
 3. Execute the following commands:  
 ```ShellSession
-$ cd build/
+$ git clone https://github.com/DennisGoldfarb/MSAcquisitionSimulator.git
+$ cd MSAcquisitionSimulator/build/
 $ cmake ../src
 $ make
 $ cd ../bin/
@@ -87,7 +88,7 @@ Options:
 ``` 
 **Example**
 
-This is an example using 1% of the proteome:
+You can download UniProt's human proteome <a href="http://www.uniprot.org/uniprot/?query=proteome:UP000005640" target="_blank">here</a>. This is an example using 1% of the proteome:
 ```ShellSession
 $ ./FASTASampler -dlognormal -m10 -s0.9 -p0.01 -o sampled_human_swissprot.fasta ~/Downloads/uniprot_homo_sapiens_proteome.fasta.gz 
 
@@ -180,6 +181,8 @@ $ FidoChooseParameters human.fido targetDecoy.txt
 Using best gamma, alpha, beta = 0.7 0.04 0.01
 ...
 ```
+The mzML file generated can be inspected with the jmzreader-gui among other tools (https://code.google.com/p/jmzreader/downloads/list). Below is a screenshot of a simulated MS1 scan.
+![Image of simulated MS1] (https://github.com/DennisGoldfarb/MSAcquisitionSimulator/blob/master/SimulatedMS1.png)
 
 ##**Simulator Details**  
 ###**Ground truth generation**  
