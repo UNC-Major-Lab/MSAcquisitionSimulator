@@ -144,7 +144,6 @@ void generate_ground_truth(IonizationEfficiencySimulator &ionization_efficiency_
 
 	std::cout << std::endl;
 
-	auto start = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < proteins.size(); ++i) {
 		std::cout << "\rNumber of proteins processed: " << i << " of " << proteins.size() << ". Currently processing: "
 		<< proteins[i].name << ". Abundance: " << proteins[i].abundance << ". Sequence length: " << proteins[i].sequence.length() << std::flush;
@@ -168,6 +167,7 @@ void generate_ground_truth(IonizationEfficiencySimulator &ionization_efficiency_
 	for (std::pair<const Peptide, double> &pair : peptides) {
 		if (num_processed_peptides%1000 == 0) {
 			std::cout << "\rNumber of peptides processed: " << num_processed_peptides << " of " << peptides.size() << ". Number of ions passing abundance thresholds: " << num_processed_ions << std::flush;
+			std::cout.flush();
 		}
 		++num_processed_peptides;
 
@@ -197,10 +197,6 @@ void generate_ground_truth(IonizationEfficiencySimulator &ionization_efficiency_
 	}
 	std::cout << "\rNumber of peptides processed: " << peptides.size() << " of " << peptides.size() << ". Number of ions passing abundance thresholds: " << num_processed_ions << std::endl;
 
-	auto end = std::chrono::high_resolution_clock::now();
-
-	std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::seconds>(end-start).count() << " seconds" << std::endl;
-
 	Histogram max_int_histogram("Most abundant ion for protein", "log10(ion abundance)", "log2(count)");
 	for (std::pair<Protein*,double> pair : protein2max_abundance) {
 		max_int_histogram.add_data(pair.second);
@@ -208,11 +204,16 @@ void generate_ground_truth(IonizationEfficiencySimulator &ionization_efficiency_
 
 	ion_histogram.print_histogram();
 	max_int_histogram.print_histogram();
+
+	std::cout << "Sorting ions by retention time. This might take a while.." << std::endl;
+	db.write_sorted_file(); // Must be sorted by retention time to make the AcquisitionSimulator faster.
 }
 
 
 
 int main(int argc, const char ** argv) {
+
+	auto start = std::chrono::high_resolution_clock::now();
 
 	std::cout << "MSAcquisitionSimulator version " << MSAcquisitionSimulator_VERSION_MAJOR << "." << MSAcquisitionSimulator_VERSION_MINOR << "." << MSAcquisitionSimulator_VERSION_PATCH << std::endl;
 	std::cout << "GroundTruthSimulator version " << GroundTruthSimulator_VERSION_MAJOR << "." << GroundTruthSimulator_VERSION_MINOR << "." << GroundTruthSimulator_VERSION_PATCH << std::endl;
@@ -329,7 +330,8 @@ int main(int argc, const char ** argv) {
 						  peptide_generator, chromo_conditions, chemical_basis, gradient_duration, db);
 
 
-	std::cout << "Sorting ions by retention time. This might take a while.." << std::endl;
-	db.write_sorted_file(); // Must be sorted by retention time to make the AcquisitionSimulator faster.
+	auto end = std::chrono::high_resolution_clock::now();
+	std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::seconds>(end-start).count() << " seconds" << std::endl;
+
 	return 0;
 }
